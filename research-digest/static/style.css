@@ -21,10 +21,10 @@
     --border-light:  #f3f4f6;
     --text-main:     #111111;
     --text-muted:    #6b7280;
-    --text-blue:     #1d4ed8;
-    --accent:        #2563eb;
-    --accent-2:      #7c3aed;
-    --accent-hover:  #1d4ed8;
+    --text-blue:     #111111;
+    --accent:        #111111;
+    --accent-2:      #555555;
+    --accent-hover:  #333333;
     --success:       #059669;
     --shadow-sm:     0 1px 3px rgba(0,0,0,0.06);
     --shadow:        0 4px 12px rgba(0,0,0,0.08);
@@ -53,10 +53,10 @@
     --border-light:  #1f2235;
     --text-main:     #e2e8f0;
     --text-muted:    #94a3b8;
-    --text-blue:     #60a5fa;
-    --accent:        #3b82f6;
-    --accent-2:      #a78bfa;
-    --accent-hover:  #2563eb;
+    --text-blue:     #e2e8f0;
+    --accent:        #ffffff;
+    --accent-2:      #94a3b8;
+    --accent-hover:  #e5e7eb;
     --success:       #10b981;
     --shadow-sm:     0 1px 3px rgba(0,0,0,0.3);
     --shadow:        0 4px 16px rgba(0,0,0,0.4);
@@ -272,6 +272,10 @@ a {
     max-width: 100%;
     margin: 0 auto;
     width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 /* Chat page: remove all padding so the layout fills 100% */
@@ -1996,7 +2000,20 @@ body.page-loaded {
 }
 .fab-run-digest:hover {
     transform: scale(1.05) translateY(-4px);
-    box-shadow: 0 6px 20px rgba(37,99,235,0.6);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+[data-theme="light"] .fab-run-digest, [data-theme="light"] .btn-primary {
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .fab-run-digest, [data-theme="dark"] .btn-primary {
+    color: #111111 !important;
+    box-shadow: 0 4px 14px rgba(255,255,255,0.2);
+}
+[data-theme="dark"] .fab-run-digest:hover, [data-theme="dark"] .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(255,255,255,0.3);
 }
 @media (max-width: 768px) {
     .fab-run-digest {

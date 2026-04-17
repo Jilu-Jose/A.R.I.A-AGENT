@@ -25,6 +25,7 @@ class User(UserMixin, db.Model):
 
     feeds = db.relationship("Feed", backref="owner", lazy=True, cascade="all, delete-orphan")
     digests = db.relationship("Digest", backref="owner", lazy=True, cascade="all, delete-orphan")
+    saved_papers = db.relationship("SavedPaper", backref="owner", lazy=True, cascade="all, delete-orphan")
 
     @property
     def is_active(self):
@@ -87,3 +88,17 @@ class DigestCluster(db.Model):
     def __repr__(self):
         """Return string representation of the DigestCluster."""
         return f"<DigestCluster {self.topic_name}>"
+
+class SavedPaper(db.Model):
+    """A single research paper or link saved natively by the user."""
+
+    __tablename__ = "saved_papers"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    title = db.Column(db.String(500), nullable=False)
+    url = db.Column(db.String(1000), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<SavedPaper {self.title}>"

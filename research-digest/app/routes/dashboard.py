@@ -4,7 +4,7 @@ Dashboard routes for A.R.I.A.
 Handles the main dashboard view, individual digest view, and manual digest triggers.
 """
 
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from loguru import logger
 
@@ -111,3 +111,75 @@ def library():
             except Exception:
                 pass
     return render_template("library.html", library_items=library_items)
+
+@dashboard_bp.route("/search", methods=["POST"])
+@login_required
+def search():
+    """Handle top nav search bar input.
+    If it's a URL, scrape the title and save it to SavedPapers.
+    """
+    query = request.form.get("query", "").strip()
+    if not query:
+        flash("Please enter a research paper link.", "error")
+        return redirect(request.referrer or url_for("dashboard.index"))
+
+    if query.startswith("http://") or query.startswith("https://"):
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+            
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+            response = requests.get(query, headers=headers, timeout=10)
+            title = "Untitled Research Paper"
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, "html.parser")
+                if soup.title and soup.title.string:
+                    title = soup.title.string.strip()
+            
+            from app.models import SavedPaper
+            from app.database import db
+            new_paper = SavedPaper(user_id=current_user.id, title=title, url=query)
+            db.session.add(new_paper)
+            db.session.commit()
+            
+            flash(f"Pinned research paper: {title[:30]}...", "success")
+        except Exception as e:
+            logger.error(f"Failed to scrape URL {query}: {e}")
+            flash("Failed to pin URL. Please check the link.", "error")
+    else:
+        # Currently, general text search is just a stub as requested feature focused on links.
+        flash("Text search is coming soon. Please paste a full URL to pin a research paper.", "info")
+
+    return redirect(url_for("dashboard.index"))
+
+@dashboard_bp.route("/paper/edit/<int:paper_id>", methods=["POST"])
+@login_required
+def edit_paper(paper_id):
+    from app.models import SavedPaper
+    from app.database import db
+    paper = SavedPaper.query.get_or_404(paper_id)
+    if paper.user_id != current_user.id:
+        flash("Unauthorized", "error")
+        return redirect(url_for("dashboard.index"))
+    
+    new_title = request.form.get("title")
+    if new_title:
+        paper.title = new_title.strip()
+        db.session.commit()
+        flash("Paper title updated.", "success")
+    return redirect(url_for("dashboard.index"))
+
+@dashboard_bp.route("/paper/delete/<int:paper_id>", methods=["POST"])
+@login_required
+def delete_paper(paper_id):
+    from app.models import SavedPaper
+    from app.database import db
+    paper = SavedPaper.query.get_or_404(paper_id)
+    if paper.user_id != current_user.id:
+        flash("Unauthorized", "error")
+        return redirect(url_for("dashboard.index"))
+    
+    db.session.delete(paper)
+    db.session.commit()
+    flash("Paper removed from pinned list.", "info")
+    return redirect(url_for("dashboard.index"))

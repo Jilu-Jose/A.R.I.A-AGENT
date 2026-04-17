@@ -4,6 +4,7 @@ A.R.I.A — Autonomous Research Intelligence Agent.
 Flask application factory.
 """
 
+from datetime import timedelta
 import os
 from flask import Flask
 from app.database import db, init_db
@@ -33,6 +34,7 @@ def create_app():
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
     # Initialise extensions
     init_db(app)

@@ -6,7 +6,7 @@ Handles user registration, login, and logout.
 
 import os
 import yaml
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 
 from app.database import db
@@ -117,7 +117,8 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and verify_password(user.password_hash, password):
-            login_user(user)
+            login_user(user, remember=True)
+            session.permanent = True
             flash("Welcome back!", "success")
             next_page = request.args.get("next")
             return redirect(next_page or url_for("dashboard.index"))
