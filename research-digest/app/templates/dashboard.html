@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — A.R.I.A{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+    <div class="dash-date">{{ "now" | default("") }}</div>
+    <div class="dash-title-row">
+        <div class="dash-greeting">Good morning, {{ current_user.username }}.</div>
+        <div>
+            <form method="POST" action="{{ url_for('dashboard.run_now') }}" id="run-digest-form">
+                <button type="submit" class="btn btn-run-digest" id="btn-run-digest">
+                    <span class="btn-run-text">RUN DIGEST NOW</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
+                    <span class="btn-spinner" id="run-spinner" style="display:none; margin-left:8px;"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="dash-subtitle">
+        {% if digests %}
+        Your intelligence briefing is ready for assembly. We've identified key updates across your monitored sectors.
+        {% else %}
+        Your research intelligence pipeline is configured and ready. Generate your first digest to begin.
+        {% endif %}
+    </div>
+</div>
+
+<div class="dash-content-grid">
+    <div class="feature-card">
+        <div class="feature-tag">THE DAILY THESIS</div>
+        <div class="feature-title">
+            {% if digests and digests[0].clusters %}
+                {{ digests[0].clusters[0].topic_name }}
+            {% else %}
+                The convergence of generative architecture and sustainable urban planning.
+            {% endif %}
+        </div>
+        <div class="feature-desc">
+            A deep dive into how AI-assisted design is reducing structural waste in emerging vertical forests.
+        </div>
+        <a href="{% if digests %}{{ url_for('dashboard.view_digest', digest_id=digests[0].id) }}{% else %}#{% endif %}" class="feature-link">
+            READ FULL BRIEF <span>14 min read</span>
+        </a>
+    </div>
+
+    <div class="monitors-card">
+        <div class="monitors-title">ACTIVE MONITORS</div>
+        <div class="monitor-list">
+            {% if current_user.feeds %}
+                {% for feed in current_user.feeds[:4] %}
+                {% if feed.is_active %}
+                <div class="monitor-item">
+                    <span>{{ feed.name }}</span>
+                    <span class="monitor-badge">LIVE</span>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% else %}
+                <div style="font-size: 0.8rem; color: #9ca3af;">No active feeds.</div>
+            {% endif %}
+        </div>
+        <a href="{{ url_for('settings.index') }}" class="btn btn-ghost btn-full" style="font-size: 0.65rem;">MANAGE SOURCES</a>
+    </div>
+</div>
+
+<div class="history-section">
+    <div class="history-header">
+        <div class="history-title">Digest History</div>
+        <a href="#" class="history-link">VIEW ALL ARCHIVES ></a>
+    </div>
+    
+    <div class="history-grid">
+        {% for digest in digests %}
+        <a href="{{ url_for('dashboard.view_digest', digest_id=digest.id) }}" class="history-card stagger-item" style="animation-delay: {{ loop.index * 0.08 }}s;">
+            <span class="hc-date">{{ digest.created_at.strftime('%b %d, %Y') }}</span>
+            <div class="hc-title">{{ digest.title | replace("Your digest for", "") | trim }}</div>
+            <div class="hc-meta">
+                {% if digest.clusters %}
+                {% for cluster in digest.clusters[:3] %}
+                <span class="hc-tag">{{ cluster.topic_name[:2].upper() }}</span>
+                {% endfor %}
+                {% endif %}
+                <span class="hc-count">{{ digest.article_count }} articles curated</span>
+            </div>
+            <div class="hc-btn">READ</div>
+        </a>
+        {% else %}
+        <div style="grid-column: 1 / -1; background: white; border: 1px dashed var(--border); padding: 3rem; text-align: center; border-radius: var(--radius);">
+            <div style="color: var(--accent); margin-bottom: 1rem; display: flex; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
+            </div>
+            <h3 style="font-family: var(--font-heading); margin-bottom: 0.5rem;">No digests yet</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Click "Run Digest Now" to generate your first curated briefing.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Set dynamic date logic if needed
+    (function() {
+        const dateEl = document.querySelector('.dash-date');
+        if (dateEl && dateEl.textContent.trim() === 'now') {
+            const now = new Date();
+            const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateEl.textContent = now.toLocaleDateString('en-US', opts).toUpperCase();
+        }
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+{% block title %}A.R.I.A — Research Assistant{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+
+    <!-- ── Left Panel: Conversation History ── -->
+    <aside class="chat-sidebar" id="chat-sidebar">
+        <div class="cs-header">
+            <div class="cs-title-row">
+                <span class="cs-label">Conversations</span>
+                <button class="cs-new-btn" id="new-chat-btn" title="New Conversation">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                </button>
+            </div>
+            <div class="cs-search-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="cs-search-icon"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                <input type="text" id="history-search" class="cs-search" placeholder="Search conversations…">
+            </div>
+        </div>
+        <div class="cs-list" id="history-list">
+            <div class="cs-empty" id="cs-empty">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="28" height="28"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
+                <p>No conversations yet.<br>Start chatting below.</p>
+            </div>
+        </div>
+        <div class="cs-footer">
+            <div class="cs-model-badge">
+                <span class="cs-model-dot"></span>
+                <span id="cs-model-name">{{ config.get('OLLAMA_MODEL', 'qwen:0.5b') }}</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Right Panel: Active Chat ── -->
+    <div class="chat-main" id="chat-main">
+
+        <!-- Top Bar -->
+        <div class="cm-topbar">
+            <div class="cm-topbar-left">
+                <button class="cm-sidebar-toggle" id="sidebar-toggle" title="Toggle History">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+                </button>
+                <div class="cm-title-area">
+                    <h1 class="cm-title">Research Assistant</h1>
+                    <span class="cm-subtitle">A.R.I.A · <span id="chat-model-label">{{ config.get('OLLAMA_MODEL', 'Local LLM') }}</span></span>
+                </div>
+            </div>
+            <div class="cm-topbar-right">
+
+                <!-- Export -->
+                <button class="cm-icon-btn" id="export-btn" title="Export conversation">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                </button>
+                <!-- Clear -->
+                <button class="cm-btn-ghost" id="clear-chat-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                    New Chat
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="cm-window" id="chat-window">
+            <!-- Welcome -->
+            <div class="cm-bubble aria-msg" id="welcome-msg">
+                <div class="cm-avatar aria-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+                </div>
+                <div class="cm-body">
+                    <div class="cm-sender">A.R.I.A <span class="cm-ts">Now</span></div>
+                    <div class="cm-text">Hello. I'm your personal research assistant. Ask me to explain a concept, summarise a topic, compare methodologies, or help you understand something from your digest. How can I help you today?</div>
+                    <div class="cm-actions">
+                        <button class="cm-copy-btn" title="Copy message">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"/></svg>
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggestion Chips -->
+        <div class="cm-chips" id="chat-suggestions">
+            <button class="cm-chip" data-prompt="What is transformer architecture in machine learning?">Transformer Architecture</button>
+            <button class="cm-chip" data-prompt="Explain reinforcement learning from human feedback (RLHF) simply.">Explain RLHF</button>
+            <button class="cm-chip" data-prompt="What are the key differences between RAG and fine-tuning an LLM?">RAG vs Fine-tuning</button>
+            <button class="cm-chip" data-prompt="Summarise the recent trends in AI safety research.">AI Safety Trends</button>
+            <button class="cm-chip" data-prompt="What is the attention mechanism and why is it important?">Attention Mechanism</button>
+            <button class="cm-chip" data-prompt="Explain diffusion models and how they generate images.">Diffusion Models</button>
+        </div>
+
+        <!-- Input Area -->
+        <div class="cm-input-row">
+            <div class="cm-input-box" id="input-box">
+                <textarea
+                    id="chat-input"
+                    class="cm-textarea"
+                    placeholder="Ask A.R.I.A anything about research…"
+                    rows="1"
+                    maxlength="3000"
+                ></textarea>
+                <div class="cm-input-actions">
+                    <span class="cm-char-count" id="char-count">0 / 3000</span>
+                    <button class="cm-send-btn" id="send-btn" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+                    </button>
+                </div>
+            </div>
+            <p class="cm-hint">A.R.I.A uses your local Ollama model · Press <kbd>Enter</kbd> to send, <kbd>Shift+Enter</kbd> for new line</p>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────
+const chatWindow    = document.getElementById('chat-window');
+const chatInput     = document.getElementById('chat-input');
+const sendBtn       = document.getElementById('send-btn');
+const suggestions   = document.getElementById('chat-suggestions');
+const clearBtn      = document.getElementById('clear-chat-btn');
+const newChatBtn    = document.getElementById('new-chat-btn');
+const exportBtn     = document.getElementById('export-btn');
+const charCount     = document.getElementById('char-count');
+const historySearch = document.getElementById('history-search');
+const historyList   = document.getElementById('history-list');
+const csEmpty       = document.getElementById('cs-empty');
+const sidebar       = document.getElementById('chat-sidebar');
+const sidebarToggle = document.getElementById('sidebar-toggle');
+const toast         = document.getElementById('toast');
+
+let conversationHistory = [];
+let isStreaming = false;
+let allSessions = JSON.parse(localStorage.getItem('aria_sessions') || '[]');
+let currentSessionId = null;
+
+// ── Sidebar Toggle ─────────────────────────────────────────────────
+sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('cs-collapsed');
+});
+
+// ── Character Count ────────────────────────────────────────────────
+chatInput.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + 'px';
+    const len = chatInput.value.length;
+    charCount.textContent = `${len} / 3000`;
+    charCount.style.color = len > 2700 ? '#ef4444' : '';
+    sendBtn.disabled = chatInput.value.trim() === '' || isStreaming;
+});
+
+chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!sendBtn.disabled) sendMessage();
+    }
+});
+
+sendBtn.addEventListener('click', sendMessage);
+clearBtn.addEventListener('click', startNewConversation);
+newChatBtn.addEventListener('click', startNewConversation);
+exportBtn.addEventListener('click', exportConversation);
+
+// Suggestion chips
+document.querySelectorAll('.cm-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        chatInput.value = chip.dataset.prompt;
+        chatInput.dispatchEvent(new Event('input'));
+        sendMessage();
+    });
+});
+
+// History search
+historySearch.addEventListener('input', () => {
+    const q = historySearch.value.toLowerCase();
+    document.querySelectorAll('.cs-item').forEach(item => {
+        item.style.display = item.dataset.title.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+
+// ── Session Management ─────────────────────────────────────────────
+function saveSession() {
+    if (!currentSessionId || conversationHistory.length === 0) return;
+    const firstUser = conversationHistory.find(m => m.role === 'user');
+    const title = firstUser ? firstUser.content.slice(0, 52) + (firstUser.content.length > 52 ? '…' : '') : 'Chat';
+    const existing = allSessions.findIndex(s => s.id === currentSessionId);
+    const session = {
+        id: currentSessionId,
+        title,
+        ts: Date.now(),
+        messages: conversationHistory
+    };
+    if (existing >= 0) allSessions[existing] = session;
+    else allSessions.unshift(session);
+    localStorage.setItem('aria_sessions', JSON.stringify(allSessions));
+    renderHistory();
+}
+
+function renderHistory() {
+    csEmpty.style.display = allSessions.length === 0 ? 'flex' : 'none';
+    // Remove old session items
+    document.querySelectorAll('.cs-item').forEach(el => el.remove());
+    allSessions.slice(0, 50).forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'cs-item' + (s.id === currentSessionId ? ' cs-item-active' : '');
+        div.dataset.title = s.title;
+        div.innerHTML = `
+            <div class="cs-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/></svg>
+            </div>
+            <div class="cs-item-body">
+                <span class="cs-item-title">${escapeHtml(s.title)}</span>
+                <span class="cs-item-meta">${formatRelative(s.ts)} · ${s.messages.length} msgs</span>
+            </div>
+            <button class="cs-delete-btn" data-id="${s.id}" title="Delete">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+            </button>`;
+        div.addEventListener('click', (e) => {
+            if (e.target.closest('.cs-delete-btn')) {
+                deleteSession(s.id);
+            } else {
+                loadSession(s.id);
+            }
+        });
+        historyList.appendChild(div);
+    });
+}
+
+function deleteSession(id) {
+    allSessions = allSessions.filter(s => s.id !== id);
+    localStorage.setItem('aria_sessions', JSON.stringify(allSessions));
+    if (currentSessionId === id) startNewConversation(false);
+    renderHistory();
+    showToast('Conversation deleted');
+}
+
+function loadSession(id) {
+    const s = allSessions.find(s => s.id === id);
+    if (!s) return;
+    currentSessionId = id;
+    conversationHistory = [...s.messages];
+    // Rebuild chat window
+    chatWindow.innerHTML = '';
+    suggestions.style.display = 'none';
+    s.messages.forEach(m => {
+        if (m.role === 'user') appendUserMessage(m.content, false);
+        else appendAriaMessage(m.content, false);
+    });
+    renderHistory();
+    scrollToBottom();
+}
+
+function startNewConversation(save = true) {
+    if (save && conversationHistory.length > 0) saveSession();
+    conversationHistory = [];
+    currentSessionId = 'session_' + Date.now();
+    chatWindow.innerHTML = '';
+    suggestions.style.display = 'flex';
+    appendAriaMessage("Conversation cleared. How can I help you?", false);
+    renderHistory();
+}
+
+// ── Message Rendering ──────────────────────────────────────────────
+function now() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function appendUserMessage(text, animate = true) {
+    suggestions.style.display = 'none';
+    const div = document.createElement('div');
+    div.className = 'cm-bubble user-msg' + (animate ? ' cm-enter' : '');
+    div.innerHTML = `
+        <div class="cm-body user-body">
+            <div class="cm-sender user-sender">You <span class="cm-ts">${now()}</span></div>
+            <div class="cm-text">${escapeHtml(text)}</div>
+            <div class="cm-actions">
+                <button class="cm-copy-btn" title="Copy">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"/></svg>
+                    Copy
+                </button>
+            </div>
+        </div>`;
+    attachCopyBtn(div);
+    chatWindow.appendChild(div);
+    scrollToBottom();
+}
+
+function appendAriaMessage(text = '', animate = true) {
+    const div = document.createElement('div');
+    div.className = 'cm-bubble aria-msg' + (animate ? ' cm-enter' : '');
+    div.innerHTML = `
+        <div class="cm-avatar aria-avatar">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"/></svg>
+        </div>
+        <div class="cm-body">
+            <div class="cm-sender">A.R.I.A <span class="cm-ts">${now()}</span></div>
+            <div class="cm-text" id="streaming-target">${text}</div>
+            <div class="cm-actions">
+                <button class="cm-copy-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"/></svg>
+                    Copy
+                </button>
+            </div>
+        </div>`;
+    attachCopyBtn(div);
+    chatWindow.appendChild(div);
+    scrollToBottom();
+    return div.querySelector('#streaming-target');
+}
+
+function appendThinkingDots() {
+    const div = document.createElement('div');
+    div.className = 'cm-bubble aria-msg cm-enter';
+    div.id = 'thinking-bubble';
+    div.innerHTML = `
+        <div class="cm-avatar aria-avatar">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"/></svg>
+        </div>
+        <div class="cm-body">
+            <div class="cm-sender">A.R.I.A <span class="cm-ts">${now()}</span></div>
+            <div class="thinking-dots"><span></span><span></span><span></span></div>
+        </div>`;
+    chatWindow.appendChild(div);
+    scrollToBottom();
+}
+
+// ── Send Message ───────────────────────────────────────────────────
+async function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text || isStreaming) return;
+
+    if (!currentSessionId) currentSessionId = 'session_' + Date.now();
+
+    isStreaming = true;
+    sendBtn.disabled = true;
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    charCount.textContent = '0 / 3000';
+
+    appendUserMessage(text);
+    conversationHistory.push({ role: 'user', content: text });
+    appendThinkingDots();
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: conversationHistory }),
+        });
+
+        document.getElementById('thinking-bubble')?.remove();
+        const target = appendAriaMessage('');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            for (const line of chunk.split('\n')) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') break;
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.error) {
+                            target.textContent = 'Error: ' + parsed.error;
+                        } else if (parsed.token) {
+                            fullResponse += parsed.token;
+                            target.innerHTML = formatResponse(fullResponse);
+                            scrollToBottom();
+                        }
+                    } catch {}
+                }
+            }
+        }
+
+        conversationHistory.push({ role: 'assistant', content: fullResponse });
+        saveSession();
+
+    } catch (err) {
+        document.getElementById('thinking-bubble')?.remove();
+        appendAriaMessage('Sorry, I could not reach the model. Please ensure Ollama is running at the configured address.');
+    }
+
+    isStreaming = false;
+    sendBtn.disabled = chatInput.value.trim() === '';
+}
+
+// ── Utilities ──────────────────────────────────────────────────────
+function attachCopyBtn(container) {
+    container.querySelectorAll('.cm-copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const textEl = container.querySelector('.cm-text');
+            navigator.clipboard.writeText(textEl ? textEl.innerText : '').then(() => showToast('Copied!'));
+        });
+    });
+}
+
+function exportConversation() {
+    if (conversationHistory.length === 0) { showToast('Nothing to export'); return; }
+    const lines = conversationHistory.map(m => `[${m.role === 'user' ? 'You' : 'A.R.I.A'}]\n${m.content}`).join('\n\n---\n\n');
+    const blob = new Blob([lines], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `aria-chat-${Date.now()}.txt`;
+    a.click();
+    showToast('Conversation exported!');
+}
+
+function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('toast-show');
+    setTimeout(() => toast.classList.remove('toast-show'), 2500);
+}
+
+function formatResponse(text) {
+    return escapeHtml(text)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^#{1,3} (.+)$/gm, '<strong>$1</strong>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+}
+
+function escapeHtml(text) {
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatRelative(ts) {
+    const diff = Date.now() - ts;
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+    return new Date(ts).toLocaleDateString();
+}
+
+function scrollToBottom() {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// ── Init ───────────────────────────────────────────────────────────
+currentSessionId = 'session_' + Date.now();
+renderHistory();
+chatInput.focus();
+</script>
+{% endblock %}

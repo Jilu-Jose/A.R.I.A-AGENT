@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ digest.title }} — A.R.I.A{% endblock %}
+
+{% block content %}
+<div class="digest-container">
+    <div class="digest-tag">PERSONAL RESEARCH</div>
+    <span class="digest-vol">VOL. {{ digest.id }} - NO. {% if digest.clusters %}{{ digest.clusters|length }}{% else %}0{% endif %}</span>
+
+    <h1 class="digest-page-title">
+        Your Digest for <em>{{ digest.created_at.strftime('%B %d, %Y') }}</em>
+    </h1>
+    <div class="digest-intro">
+        A synthesized intelligence briefing covering your active research nodes: 
+        {% if digest.clusters %}
+            {{ digest.clusters|map(attribute='topic_name')|join(', ') }}.
+        {% else %}
+            No active topics discovered.
+        {% endif %}
+    </div>
+
+    {% for cluster in digest.clusters %}
+    <div class="cluster-block">
+        <h2 class="cluster-title">{{ cluster.topic_name }}</h2>
+
+        <div class="cluster-grid">
+            <!-- Left side main content -->
+            <div class="cluster-main">
+                <div class="cluster-img-box">
+                    <div class="cluster-img-tag">LEAD INTELLIGENCE</div>
+                </div>
+
+                <div class="bullet-grid">
+                    {% for bullet in cluster.summary.split('\n') %}
+                    {% if bullet.strip() %}
+                    <div class="bullet-item">
+                        <span class="bullet-num">0{{ loop.index }}</span>
+                        <span>{{ bullet.strip().lstrip('-•* ') }}</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="sources-header">PRIMARY SOURCES</div>
+                {% if cluster._parsed_urls and cluster._parsed_titles %}
+                    {% set urls = cluster._parsed_urls %}
+                    {% set titles = cluster._parsed_titles %}
+                    {% for i in range([urls|length, titles|length, 3]|min) %}
+                    <a href="{{ urls[i] }}" target="_blank" class="source-link">
+                        {{ titles[i] }}
+                    </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Right side column cards -->
+            <div class="cluster-sidebar">
+                <div class="side-card">
+                    <div class="side-card-title">Cluster Dynamics</div>
+                    <div class="side-card-sub">Key Signals</div>
+                    <ul class="side-list">
+                        <li>High-frequency shifts in related indices.</li>
+                        <li>Volatility spikes inferred from sources.</li>
+                        <li>Cross-domain intersections discovered.</li>
+                        <li>Sentiment-driven trends highlighted.</li>
+                    </ul>
+                    <a href="#" class="side-link-action" style="display:flex; align-items:center; gap:0.25rem;">
+                        VIEW FULL ANALYSIS 
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 12px; height: 12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" /></svg>
+                    </a>
+                </div>
+                <!-- Placeholder for second side card from design -->
+                <div class="side-card" style="background: linear-gradient(-45deg, #4b5563, #1f2937); color: white; border: none; min-height: 150px; display: flex; align-items: flex-end;">
+                    <div style="font-family: var(--font-heading); font-size: 1rem; font-style: italic;">Deep Dive Spotlight</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="digest-end">
+        <div class="digest-curated-by">CURATED BY A.R.I.A INTEL-ENGINE</div>
+        <div class="digest-quote">"The pursuit of knowledge is not the accumulation of facts, but the synthesis of connections across the void."</div>
+        <div class="digest-actions">
+            <a href="#" class="action-link">DOWNLOAD PDF</a>
+            <a href="#" class="action-link">SHARE DIGEST</a>
+            <a href="{{ url_for('dashboard.index') }}" class="action-link">ARCHIVE VIEW</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

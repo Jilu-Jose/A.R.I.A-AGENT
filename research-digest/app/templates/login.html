@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Sign In — A.R.I.A{% endblock %}
+
+{% block auth_content %}
+<div class="auth-wrapper">
+    <div class="auth-header">
+        <div class="auth-brand">A.R.I.A</div>
+        <div class="auth-brand-sub">RESEARCH INTELLIGENCE PORTAL</div>
+    </div>
+
+    <div class="auth-card">
+        <h2 class="auth-title">Welcome back</h2>
+        <p class="auth-subtitle">Sign in to access your curated intelligence digests.</p>
+
+        <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form">
+            <div class="form-group">
+                <label for="login-email" class="form-label">INSTITUTIONAL EMAIL</label>
+                <div class="input-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="input-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+                    <input type="email" id="login-email" name="email" class="form-input" placeholder="name@institution.edu" value="{{ email if email else '' }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div style="display:flex; justify-content:space-between;">
+                    <label for="login-password" class="form-label">SECURITY KEY</label>
+                    <a href="#" style="font-size:0.65rem; font-weight:700; color:var(--accent); text-transform:uppercase;">RECOVERY</a>
+                </div>
+                <div class="input-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="input-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+                    <input type="password" id="login-password" name="password" class="form-input" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full" style="margin-top: 0.5rem;">AUTHENTICATE ACCESS</button>
+        </form>
+
+        <div style="text-align:center; margin: 2rem 0 1rem; font-size:0.65rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">
+            OR AUTHENTICATE VIA
+        </div>
+        
+        <div style="display:flex; gap:1rem;">
+            <button class="btn btn-ghost btn-full" style="font-size:0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px; margin-right: 4px; color: #111;"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg> Google SSO
+            </button>
+            <button class="btn btn-ghost btn-full" style="font-size:0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 14px; height: 14px; margin-right: 4px; color: #111;"><path stroke-linecap="round" stroke-linejoin="round" d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 1.62-.26 3.175-.754 4.615" /></svg> Biometric
+            </button>
+        </div>
+
+        <div class="auth-link-block">
+            Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a>
+        </div>
+    </div>
+
+    <div class="auth-footer-brand">
+        © 2026 A.R.I.A CURATORIAL SYSTEMS<br>
+        <span style="color:#d1d5db;">AUTHORIZED ACCESS ONLY. ALL INTERACTIONS LOGGED.</span>
+    </div>
+</div>
+{% endblock %}

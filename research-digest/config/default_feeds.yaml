@@ -1,0 +1,25 @@
+# Default RSS feeds seeded for every new user on registration
+feeds:
+  - name: "MIT Technology Review - AI"
+    url: "https://www.technologyreview.com/feed/"
+    tags: "AI, technology, research"
+
+  - name: "ArXiv - Artificial Intelligence"
+    url: "https://rss.arxiv.org/rss/cs.AI"
+    tags: "AI, machine learning, papers"
+
+  - name: "The Verge - Tech"
+    url: "https://www.theverge.com/rss/index.xml"
+    tags: "technology, gadgets, software"
+
+  - name: "Hacker News - Best"
+    url: "https://hnrss.org/best"
+    tags: "programming, startups, tech"
+
+  - name: "Towards Data Science - Medium"
+    url: "https://towardsdatascience.com/feed"
+    tags: "data science, ML, tutorials"
+
+  - name: "IEEE Spectrum - Tech"
+    url: "https://spectrum.ieee.org/feeds/feed.rss"
+    tags: "engineering, technology, innovation"

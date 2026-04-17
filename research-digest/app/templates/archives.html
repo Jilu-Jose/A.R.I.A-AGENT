@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Archives — A.R.I.A{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+    <div class="dash-title-row">
+        <div class="dash-greeting">Research Archives</div>
+    </div>
+    <div class="dash-subtitle">
+        Your complete historical record of intelligence briefings.
+    </div>
+</div>
+
+<div class="history-grid" style="margin-top: 2rem;">
+    {% for digest in digests %}
+    <a href="{{ url_for('dashboard.view_digest', digest_id=digest.id) }}" class="history-card stagger-item" style="animation-delay: {{ loop.index * 0.08 }}s;">
+        <span class="hc-date">{{ digest.created_at.strftime('%b %d, %Y') }}</span>
+        <div class="hc-title">{{ digest.title | replace("Your digest for", "") | trim }}</div>
+        <div class="hc-meta">
+            {% if digest.clusters %}
+            {% for cluster in digest.clusters[:3] %}
+            <span class="hc-tag">{{ cluster.topic_name[:2].upper() }}</span>
+            {% endfor %}
+            {% endif %}
+            <span class="hc-count">{{ digest.article_count }} articles curated</span>
+        </div>
+        <div class="hc-btn">READ</div>
+    </a>
+    {% else %}
+    <div style="grid-column: 1 / -1; background: var(--bg-card); border: 1px dashed var(--border); padding: 3rem; text-align: center; border-radius: var(--radius);">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">No archives found.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Library — A.R.I.A{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+    <div class="dash-title-row">
+        <div class="dash-greeting">Intelligence Library</div>
+    </div>
+    <div class="dash-subtitle">
+        A master index of all tracked sources and key articles analyzed by A.R.I.A.
+    </div>
+</div>
+
+<div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-top: 2rem;">
+    {% if library_items %}
+    <ul style="list-style: none; padding: 0;">
+        {% for item in library_items %}
+        <li class="stagger-item" style="border-bottom: 1px solid var(--border); padding: 1.5rem 0; animation-delay: {{ loop.index * 0.05 }}s;">
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; display: flex; gap: 1rem; align-items: center;">
+                <span class="ft-tag" style="background: var(--bg-cs-hover); color: var(--text-muted); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">{{ item.topic }}</span>
+                <span>{{ item.date.strftime('%b %d, %Y') }}</span>
+            </div>
+            <a href="{{ item.url }}" target="_blank" style="font-family: var(--font-heading); font-size: 1.2rem; display: block; color: var(--text-main); line-height: 1.3; margin-bottom: 0.5rem; transition: color 0.2s;">
+                {{ item.title }}
+            </a>
+            <a href="{{ item.url }}" target="_blank" style="font-size: 0.75rem; color: var(--text-blue); display: inline-block; word-break: break-all; opacity: 0.8;">
+                {{ item.url }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+        No articles recorded in your library yet. Generate digests to start tracking intelligence.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
