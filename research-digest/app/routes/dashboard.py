@@ -1,44 +1,23 @@
-"""
-Dashboard routes for A.R.I.A.
-
-Handles the main dashboard view, individual digest view, and manual digest triggers.
-"""
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from loguru import logger
-
 from app.models import Digest
-
 dashboard_bp = Blueprint("dashboard", __name__)
-
-
 @dashboard_bp.route("/")
 @login_required
 def index():
-    """Render the main dashboard showing the user's past digests.
-
-    Displays digests ordered by creation date (newest first).
-    Shows a helpful message if no digests have been generated yet.
-    """
     digests = (
         Digest.query.filter_by(user_id=current_user.id)
         .order_by(Digest.created_at.desc())
         .all()
     )
     return render_template("dashboard.html", digests=digests)
-
-
 @dashboard_bp.route("/run-now", methods=["POST"])
 @login_required
 def run_now():
-    """Trigger the full agent pipeline for the current user synchronously.
-
-    Imports and runs the agent orchestration, then redirects to the dashboard.
-    """
     try:
         from main import run_for_user
-
         digest_id = run_for_user(current_user.id)
         if digest_id:
             flash("Digest generated successfully!", "success")
@@ -48,20 +27,10 @@ def run_now():
     except Exception as e:
         logger.error(f"Error running digest for user {current_user.id}: {e}")
         flash(f"An error occurred while generating your digest: {str(e)}", "error")
-
     return redirect(url_for("dashboard.index"))
-
-
 @dashboard_bp.route("/digest/<int:digest_id>")
 @login_required
 def view_digest(digest_id):
-    """Render a full digest with all its topic clusters.
-
-    Args:
-        digest_id: The primary key of the digest to view.
-
-    Only shows digests owned by the current user.
-    """
     import ast
     digest = Digest.query.filter_by(id=digest_id, user_id=current_user.id).first_or_404()
     for cluster in digest.clusters:
@@ -71,24 +40,19 @@ def view_digest(digest_id):
         except Exception:
             cluster._parsed_urls = []
             cluster._parsed_titles = []
-    
     return render_template("digest.html", digest=digest)
-
 @dashboard_bp.route("/archives")
 @login_required
 def archives():
-    """Render all past digests."""
     digests = (
         Digest.query.filter_by(user_id=current_user.id)
         .order_by(Digest.created_at.desc())
         .all()
     )
     return render_template("archives.html", digests=digests)
-
 @dashboard_bp.route("/library")
 @login_required
 def library():
-    """Render a library of all curated articles across all digests."""
     import ast
     digests = (
         Digest.query.filter_by(user_id=current_user.id)
@@ -111,23 +75,17 @@ def library():
             except Exception:
                 pass
     return render_template("library.html", library_items=library_items)
-
 @dashboard_bp.route("/search", methods=["POST"])
 @login_required
 def search():
-    """Handle top nav search bar input.
-    If it's a URL, scrape the title and save it to SavedPapers.
-    """
     query = request.form.get("query", "").strip()
     if not query:
         flash("Please enter a research paper link.", "error")
         return redirect(request.referrer or url_for("dashboard.index"))
-
     if query.startswith("http://") or query.startswith("https://"):
         try:
             import requests
             from bs4 import BeautifulSoup
-            
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
             response = requests.get(query, headers=headers, timeout=10)
             title = "Untitled Research Paper"
@@ -135,23 +93,18 @@ def search():
                 soup = BeautifulSoup(response.text, "html.parser")
                 if soup.title and soup.title.string:
                     title = soup.title.string.strip()
-            
             from app.models import SavedPaper
             from app.database import db
             new_paper = SavedPaper(user_id=current_user.id, title=title, url=query)
             db.session.add(new_paper)
             db.session.commit()
-            
             flash(f"Pinned research paper: {title[:30]}...", "success")
         except Exception as e:
             logger.error(f"Failed to scrape URL {query}: {e}")
             flash("Failed to pin URL. Please check the link.", "error")
     else:
-        # Currently, general text search is just a stub as requested feature focused on links.
         flash("Text search is coming soon. Please paste a full URL to pin a research paper.", "info")
-
     return redirect(url_for("dashboard.index"))
-
 @dashboard_bp.route("/paper/edit/<int:paper_id>", methods=["POST"])
 @login_required
 def edit_paper(paper_id):
@@ -161,14 +114,12 @@ def edit_paper(paper_id):
     if paper.user_id != current_user.id:
         flash("Unauthorized", "error")
         return redirect(url_for("dashboard.index"))
-    
     new_title = request.form.get("title")
     if new_title:
         paper.title = new_title.strip()
         db.session.commit()
         flash("Paper title updated.", "success")
     return redirect(url_for("dashboard.index"))
-
 @dashboard_bp.route("/paper/delete/<int:paper_id>", methods=["POST"])
 @login_required
 def delete_paper(paper_id):
@@ -178,7 +129,6 @@ def delete_paper(paper_id):
     if paper.user_id != current_user.id:
         flash("Unauthorized", "error")
         return redirect(url_for("dashboard.index"))
-    
     db.session.delete(paper)
     db.session.commit()
     flash("Paper removed from pinned list.", "info")

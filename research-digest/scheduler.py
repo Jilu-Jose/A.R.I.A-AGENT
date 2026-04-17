@@ -1,27 +1,14 @@
-"""
-Scheduler for A.R.I.A.
-
-Runs the digest pipeline for all active users every day at 07:00 using APScheduler.
-Can be started as a standalone process alongside the Flask web server.
-"""
 
 import sys
 import os
 from dotenv import load_dotenv
-
-# Load .env from project root
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
 from apscheduler.schedulers.blocking import BlockingScheduler
 from loguru import logger
-
 from app import create_app
 from app.models import User
 from main import run_for_user
-
-# Configure loguru for the scheduler
 logger.add(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "scheduler.log"),
     rotation="7 days",
@@ -29,53 +16,32 @@ logger.add(
     level="INFO",
     format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
 )
-
-
 def daily_digest_job():
-    """Run the digest pipeline for every active user.
-
-    Queries the database for all users with is_active_user=True,
-    then executes run_for_user() for each one. Errors for individual
-    users are caught and logged without crashing the entire job.
-    """
     app = create_app()
-
     with app.app_context():
         users = User.query.filter_by(is_active_user=True).all()
         logger.info(f"Daily digest job started — processing {len(users)} active users")
-
         success_count = 0
         error_count = 0
-
         for user in users:
             try:
                 logger.info(f"Processing user: {user.username} (id={user.id})")
                 digest_id = run_for_user(user.id)
-
                 if digest_id:
                     success_count += 1
                     logger.info(f"✓ Digest #{digest_id} created for {user.username}")
                 else:
                     logger.info(f"— No digest created for {user.username} (no new articles)")
-
             except Exception as e:
                 error_count += 1
                 logger.error(f"✕ Failed for {user.username}: {e}")
-
         logger.info(
             f"Daily digest job completed — "
             f"{success_count} digests created, "
             f"{error_count} errors, "
             f"{len(users) - success_count - error_count} skipped"
         )
-
-
 def start_scheduler():
-    """Start the APScheduler blocking scheduler.
-
-    Schedules the daily_digest_job to run every day at 07:00.
-    This function blocks indefinitely and should be run in its own process.
-    """
     scheduler = BlockingScheduler()
     scheduler.add_job(
         daily_digest_job,
@@ -86,17 +52,13 @@ def start_scheduler():
         name="Daily Research Digest",
         misfire_grace_time=3600,
     )
-
     logger.info("A.R.I.A Scheduler started — daily digest runs at 07:00")
     print("◈ A.R.I.A Scheduler started — daily digest runs at 07:00")
     print("  Press Ctrl+C to stop.")
-
     try:
         scheduler.start()
     except (KeyboardInterrupt, SystemExit):
         logger.info("Scheduler stopped.")
         print("\n◈ Scheduler stopped.")
-
-
 if __name__ == "__main__":
     start_scheduler()

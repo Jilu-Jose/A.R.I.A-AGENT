@@ -1,8 +1,6 @@
-/* ============================================================
-   A.R.I.A — Premium "ALEXANDRIA" Aesthetic
-   ============================================================ */
 
-/* ── Light Theme (default) ───────────────────────── */
+
+
 :root,
 [data-theme="light"] {
     --bg-page:       #ffffff;
@@ -36,7 +34,7 @@
     --dot-color:     #e5e7eb;
 }
 
-/* ── Dark Theme ──────────────────────────────────── */
+
 [data-theme="dark"] {
     --bg-page:       #0f1117;
     --bg-sidebar:    #0f1117;
@@ -111,9 +109,7 @@ a {
     text-decoration: none;
 }
 
-/* ============================================================
-   AUTH PAGES (No Sidebar)
-   ============================================================ */
+
 .auth-wrapper {
     min-height: 100vh;
     display: flex;
@@ -193,9 +189,7 @@ a {
     text-transform: uppercase;
 }
 
-/* ============================================================
-   APP LAYOUT
-   ============================================================ */
+
 .app-container {
     display: flex;
     flex-direction: row;
@@ -239,7 +233,7 @@ a {
 
 .topbar-link.active {
     color: var(--accent);
-    box-shadow: 0 2px 0 var(--accent); /* Bottom active indicator */
+    box-shadow: 0 2px 0 var(--accent); 
     padding-bottom: 2px;
 }
 
@@ -254,16 +248,16 @@ a {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* fix: prevent content spilling outside layout */
+    overflow: hidden; 
     background: var(--bg-page);
     background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
     background-size: 20px 20px;
-    min-width: 0; /* fix: flex child shrink */
+    min-width: 0; 
 }
 
 .main-content {
     flex: 1;
-    overflow-y: auto; /* scroll happens here, not on main-wrapper */
+    overflow-y: auto; 
     padding: 2rem 4rem;
     position: relative;
 }
@@ -278,7 +272,7 @@ a {
     min-height: 0;
 }
 
-/* Chat page: remove all padding so the layout fills 100% */
+
 .main-content-flush {
     padding: 0;
     overflow: hidden;
@@ -287,9 +281,7 @@ a {
 }
 
 
-/* ============================================================
-   SIDEBAR
-   ============================================================ */
+
 .sidebar {
     width: 260px;
     border-right: 1px solid var(--border);
@@ -384,7 +376,7 @@ a {
 .storage-fill {
     height: 100%;
     background: var(--accent);
-    width: 62%; /* Static for prototype */
+    width: 62%; 
 }
 
 .storage-text {
@@ -392,16 +384,14 @@ a {
     color: var(--text-muted);
 }
 
-/* ============================================================
-   MAIN CONTENT
-   ============================================================ */
+
 .main-content {
     flex: 1;
     padding: 2rem 4rem;
     position: relative;
 }
 
-/* Flash Messages placed in main content */
+
 .flash-messages {
     margin-bottom: 1.5rem;
 }
@@ -415,9 +405,7 @@ a {
 .flash-success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
 .flash-error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
-/* ============================================================
-   FORMS & INPUTS
-   ============================================================ */
+
 .form-group {
     display: flex;
     flex-direction: column;
@@ -464,7 +452,7 @@ a {
     padding-left: 2.25rem;
 }
 
-/* Grid form layout */
+
 .form-row {
     display: flex;
     gap: 1rem;
@@ -473,9 +461,7 @@ a {
 .form-col { flex: 1; }
 .form-col-wide { flex: 2; }
 
-/* ============================================================
-   BUTTONS
-   ============================================================ */
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -521,9 +507,7 @@ a {
     width: 100%;
 }
 
-/* ============================================================
-   DASHBOARD / LATEST DIGEST PAGE
-   ============================================================ */
+
 .dash-header {
     margin-bottom: 2.5rem;
 }
@@ -564,7 +548,7 @@ a {
     color: white;
     padding: 0.75rem 1.5rem;
     font-size: 0.8rem;
-    border-radius: 20px; /* pill shape somewhat in image */
+    border-radius: 20px; 
     box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
 }
 
@@ -575,7 +559,7 @@ a {
     margin-bottom: 4rem;
 }
 
-/* Featured Card Placeholder */
+
 .feature-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -592,7 +576,7 @@ a {
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 1px;
-    background: #fef08a; /* yellow hint */
+    background: #fef08a; 
     color: #854d0e;
     padding: 0.2rem 0.5rem;
     align-self: flex-start;
@@ -627,7 +611,7 @@ a {
 }
 .feature-link span { color: var(--text-muted); font-weight: 400; font-style: italic; text-transform: none; }
 
-/* Active Monitors Panel */
+
 .monitors-card {
     background: var(--bg-card);
     border-radius: var(--radius);
@@ -664,7 +648,7 @@ a {
     border-radius: 2px;
 }
 
-/* History Section */
+
 .history-header {
     display: flex;
     justify-content: space-between;
@@ -744,9 +728,7 @@ a {
     text-transform: uppercase;
 }
 
-/* ============================================================
-   DIGEST DETAIL PAGE
-   ============================================================ */
+
 .digest-container {
     width: 100%;
 }
@@ -785,10 +767,10 @@ a {
     margin-bottom: 3rem;
 }
 
-/* Clusters */
+
 .cluster-block {
     margin-bottom: 4rem;
-    border-top: 2px solid var(--accent); /* blue accent line top left */
+    border-top: 2px solid var(--accent); 
     padding-top: 1.5rem;
 }
 .cluster-title {
@@ -803,7 +785,7 @@ a {
     gap: 2rem;
 }
 
-/* Cluster Image Placeholder (using gradient) */
+
 .cluster-img-box {
     background: linear-gradient(-45deg, #374151, #111827);
     height: 240px;
@@ -822,7 +804,7 @@ a {
     letter-spacing: 1px;
 }
 
-/* Bullet grid */
+
 .bullet-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -841,7 +823,7 @@ a {
     font-size: 0.9rem;
 }
 
-/* Market Dynamics Card (Right column) */
+
 .side-card {
     background: #fafafa;
     border: 1px solid var(--border);
@@ -881,7 +863,7 @@ a {
     text-transform: uppercase;
 }
 
-/* Sources */
+
 .sources-header {
     font-size: 0.65rem;
     font-weight: 700;
@@ -901,7 +883,7 @@ a {
     margin-bottom: 0.75rem;
 }
 
-/* Digest Footer */
+
 .digest-end {
     margin-top: 4rem;
     padding-top: 2rem;
@@ -933,9 +915,7 @@ a {
     letter-spacing: 1px;
 }
 
-/* ============================================================
-   SETTINGS PAGE
-   ============================================================ */
+
 .settings-container {
     width: 100%;
 }
@@ -952,7 +932,7 @@ a {
     margin-bottom: 3rem;
 }
 
-/* Section Box */
+
 .settings-box {
     background: #ffffff;
     border: 1px solid var(--border);
@@ -1043,7 +1023,7 @@ a {
     text-transform: uppercase;
 }
 
-/* Toggle switch */
+
 .toggle-switch {
     position: relative;
     display: inline-block;
@@ -1073,7 +1053,7 @@ a {
 input:checked + .toggle-slider { background-color: var(--accent); }
 input:checked + .toggle-slider:before { transform: translateX(16px); }
 
-/* Bottom Grid for Settings */
+
 .settings-bottom-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -1129,11 +1109,9 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     margin-bottom: 1rem;
 }
 
-/* ============================================================
-   CHAT PAGE — Redesigned Layout
-   ============================================================ */
 
-/* Full-bleed layout: replaces the default padded main-content on chat page */
+
+
 .chat-layout {
     display: flex;
     height: 100%;
@@ -1141,7 +1119,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     background: var(--bg-page);
 }
 
-/* ── Chat Sidebar (History) ── */
+
 .chat-sidebar {
     width: 280px;
     min-width: 280px;
@@ -1316,7 +1294,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     50%       { box-shadow: 0 0 0 4px rgba(16,185,129,0.1);  }
 }
 
-/* ── Chat Main ── */
+
 .chat-main {
     flex: 1;
     display: flex;
@@ -1325,7 +1303,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     min-width: 0;
 }
 
-/* Top bar */
+
 .cm-topbar {
     display: flex;
     align-items: center;
@@ -1406,7 +1384,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 }
 .cm-btn-ghost:hover { background: var(--bg-cs-hover); color: var(--text-main); }
 
-/* Chat Messages Window */
+
 .cm-window {
     flex: 1;
     overflow-y: auto;
@@ -1417,7 +1395,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     scroll-behavior: smooth;
 }
 
-/* Chat Bubbles */
+
 .cm-bubble {
     display: flex;
     gap: 0.75rem;
@@ -1529,7 +1507,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 }
 .cm-copy-btn:hover { background: var(--bg-cs-hover); color: var(--text-main); }
 
-/* Thinking dots */
+
 .thinking-dots {
     display: flex;
     gap: 5px;
@@ -1552,7 +1530,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     40% { transform: scale(1); opacity: 1; }
 }
 
-/* Suggestion chips */
+
 .cm-chips {
     display: flex;
     gap: 0.5rem;
@@ -1580,7 +1558,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     transform: translateY(-1px);
 }
 
-/* Input area */
+
 .cm-input-row {
     padding: 0.75rem 1.5rem 1rem;
     border-top: 1px solid var(--border);
@@ -1657,7 +1635,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     font-family: monospace;
 }
 
-/* Toast */
+
 .toast {
     position: fixed;
     bottom: 2rem;
@@ -1714,7 +1692,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     scroll-behavior: smooth;
 }
 
-/* Chat bubbles */
+
 .chat-bubble {
     display: flex;
     gap: 0.85rem;
@@ -1782,7 +1760,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     margin-bottom: 0.25rem;
 }
 
-/* Thinking animation */
+
 .thinking-dots {
     display: flex;
     gap: 5px;
@@ -1805,7 +1783,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     40% { transform: scale(1); opacity: 1; }
 }
 
-/* Suggestion chips */
+
 .chat-suggestions {
     display: flex;
     gap: 0.5rem;
@@ -1832,7 +1810,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     background: #eff6ff;
 }
 
-/* Input area */
+
 .chat-input-row {
     padding-top: 1rem;
     border-top: 1px solid var(--border);
@@ -1895,11 +1873,9 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     text-align: center;
 }
 
-/* ============================================================
-   AESTHETIC FEATURES & ANIMATIONS
-   ============================================================ */
 
-/* Page Fade-in Transition */
+
+
 body {
     opacity: 0;
     transition: opacity 0.4s ease-in-out;
@@ -1908,7 +1884,7 @@ body.page-loaded {
     opacity: 1;
 }
 
-/* Hover Physics for Cards */
+
 .feature-card, .history-card {
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.2s ease;
 }
@@ -1917,7 +1893,7 @@ body.page-loaded {
     box-shadow: var(--shadow);
 }
 
-/* Staggered Animations */
+
 .stagger-item {
     opacity: 0;
     transform: translateY(20px);
@@ -1927,7 +1903,7 @@ body.page-loaded {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Toast Engine */
+
 .toast-container {
     position: fixed;
     bottom: 7rem;
@@ -1958,7 +1934,7 @@ body.page-loaded {
     opacity: 1;
 }
 
-/* Material Ripple */
+
 .btn {
     position: relative;
     overflow: hidden;
@@ -1979,7 +1955,7 @@ body.page-loaded {
     to { transform: scale(4); opacity: 0; }
 }
 
-/* FAB Component */
+
 .fab-run-digest {
     position: fixed;
     bottom: 2rem;
@@ -2022,7 +1998,7 @@ body.page-loaded {
     }
 }
 
-/* Custom Scrollbar */
+
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -2038,7 +2014,7 @@ body.page-loaded {
     background: rgba(150, 150, 150, 0.5);
 }
 
-/* Hamburger Menu Button */
+
 .hamburger-btn {
     display: none;
     background: none;
@@ -2049,16 +2025,14 @@ body.page-loaded {
     align-items: center;
 }
 
-/* Drop hover scale on active buttons */
+
 .btn:active {
     transform: scale(0.97);
 }
 
-/* ============================================================
-   MOBILE RESPONSIVENESS (<768px)
-   ============================================================ */
+
 @media (max-width: 768px) {
-    /* Topbar Layout */
+    
     .topbar {
         justify-content: space-between;
         padding: 1rem 1.5rem;
@@ -2069,7 +2043,7 @@ body.page-loaded {
         display: flex;
     }
 
-    /* Sidebar Drawer */
+    
     #main-sidebar {
         position: fixed;
         left: 0;
@@ -2084,7 +2058,7 @@ body.page-loaded {
         transform: translateX(0);
     }
 
-    /* Grid Resets */
+    
     .dash-content-grid,
     .history-grid,
     .settings-bottom-grid {
@@ -2100,7 +2074,7 @@ body.page-loaded {
         align-items: stretch;
     }
 
-    /* Adjust chat sidebar to slide over chat */
+    
     .chat-sidebar {
         position: absolute;
         left: 0;

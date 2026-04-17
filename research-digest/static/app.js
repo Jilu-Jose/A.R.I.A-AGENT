@@ -1,7 +1,4 @@
-/**
- * A.R.I.A — Client-side interactions
- * Handles: run-digest button, feed toggles, flash auto-dismiss
- */
+
 
 document.addEventListener('DOMContentLoaded', function () {
     initRunDigestButton();
@@ -9,10 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-/**
- * Attach loading state to the "Run digest now" button on click.
- * Disables the button, shows a spinner, and updates the text.
- */
+
 function initRunDigestButton() {
     var btn = document.getElementById('btn-run-digest');
     if (!btn) return;
@@ -36,9 +30,7 @@ function initRunDigestButton() {
 }
 
 
-/**
- * Auto-dismiss flash messages after 4 seconds with a fade-out animation.
- */
+
 function initFlashAutoDismiss() {
     var flashes = document.querySelectorAll('.flash');
     if (!flashes.length) return;

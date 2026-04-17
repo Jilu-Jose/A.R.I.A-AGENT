@@ -4,7 +4,7 @@
 {% block content %}
 <div class="chat-layout">
 
-    <!-- ── Left Panel: Conversation History ── -->
+    
     <aside class="chat-sidebar" id="chat-sidebar">
         <div class="cs-header">
             <div class="cs-title-row">
@@ -32,10 +32,10 @@
         </div>
     </aside>
 
-    <!-- ── Right Panel: Active Chat ── -->
+    
     <div class="chat-main" id="chat-main">
 
-        <!-- Top Bar -->
+        
         <div class="cm-topbar">
             <div class="cm-topbar-left">
                 <button class="cm-sidebar-toggle" id="sidebar-toggle" title="Toggle History">
@@ -48,11 +48,11 @@
             </div>
             <div class="cm-topbar-right">
 
-                <!-- Export -->
+                
                 <button class="cm-icon-btn" id="export-btn" title="Export conversation">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
                 </button>
-                <!-- Clear -->
+                
                 <button class="cm-btn-ghost" id="clear-chat-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
                     New Chat
@@ -60,9 +60,9 @@
             </div>
         </div>
 
-        <!-- Chat Messages -->
+        
         <div class="cm-window" id="chat-window">
-            <!-- Welcome -->
+            
             <div class="cm-bubble aria-msg" id="welcome-msg">
                 <div class="cm-avatar aria-avatar">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
@@ -80,7 +80,7 @@
             </div>
         </div>
 
-        <!-- Suggestion Chips -->
+        
         <div class="cm-chips" id="chat-suggestions">
             <button class="cm-chip" data-prompt="What is transformer architecture in machine learning?">Transformer Architecture</button>
             <button class="cm-chip" data-prompt="Explain reinforcement learning from human feedback (RLHF) simply.">Explain RLHF</button>
@@ -90,7 +90,7 @@
             <button class="cm-chip" data-prompt="Explain diffusion models and how they generate images.">Diffusion Models</button>
         </div>
 
-        <!-- Input Area -->
+        
         <div class="cm-input-row">
             <div class="cm-input-box" id="input-box">
                 <textarea
@@ -112,7 +112,7 @@
     </div>
 </div>
 
-<!-- Toast notification -->
+
 <div class="toast" id="toast"></div>
 
 <script>
