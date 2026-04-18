@@ -1,4 +1,3 @@
-
 import os
 import numpy as np
 from langchain.schema import Document
