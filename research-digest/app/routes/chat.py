@@ -1,4 +1,3 @@
-
 import os
 import json
 from flask import Blueprint, render_template, request, Response, stream_with_context
@@ -11,10 +10,7 @@ SYSTEM_PROMPT = (
     "Keep your answers focused, clear, and well-structured. Use bullet points or "
     "numbered lists when appropriate."
 )
-def _get_ollama_url():
-    return os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-def _get_model():
-    return os.environ.get("OLLAMA_MODEL", "qwen2.5:0.5b")
+
 @chat_bp.route("/chat")
 @login_required
 def index():
@@ -26,42 +22,83 @@ def stream_chat():
     messages = data.get("messages", [])
     if not messages:
         return Response("data: [DONE]\n\n", mimetype="text/event-stream")
-    history_text = ""
-    for msg in messages[:-1]:                                       
-        role = "User" if msg["role"] == "user" else "A.R.I.A"
-        history_text += f"{role}: {msg['content']}\n"
+        
+    from flask_login import current_user
+    from agent.vectorstore import get_retriever
+
     user_message = messages[-1]["content"]
-    full_prompt = (
-        f"System: {SYSTEM_PROMPT}\n\n"
-        f"{history_text}"
-        f"User: {user_message}\n"
-        f"A.R.I.A:"
-    )
+    
+    # RAG Retrieval
+    context = ""
+    retriever = get_retriever(current_user.id)
+    if retriever:
+        try:
+            docs = retriever.invoke(user_message)
+            if docs:
+                context_parts = []
+                for idx, doc in enumerate(docs):
+                    title = doc.metadata.get("title", f"Source {idx+1}")
+                    context_parts.append(f"[{title}]: {doc.page_content}")
+                context = "\n\n".join(context_parts)
+        except Exception as e:
+            import loguru
+            loguru.logger.error(f"RAG retrieval failed: {e}")
+
+    # Use NVIDIA NIM API (OpenAI-compatible)
     def generate():
         import requests as req
         try:
-            ollama_url = f"{_get_ollama_url()}/api/generate"
+            nvidia_api_key = os.environ.get("NVIDIA_API_KEY", "")
+            url = f"{os.environ.get('NVIDIA_BASE_URL', 'https://integrate.api.nvidia.com/v1')}/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {nvidia_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            formatted_messages = []
+            system_content = SYSTEM_PROMPT
+            if context:
+                system_content += (
+                    f"\n\nContext information is below.\n"
+                    f"---------------------\n"
+                    f"{context}\n"
+                    f"---------------------\n"
+                    f"Given the context information and no prior knowledge, answer the user's query."
+                )
+            formatted_messages.append({"role": "system", "content": system_content})
+            
+            for msg in messages:
+                formatted_messages.append({
+                    "role": msg["role"],
+                    "content": msg["content"]
+                })
+                
             payload = {
-                "model": _get_model(),
-                "prompt": full_prompt,
+                "model": os.environ.get("NVIDIA_MODEL", "moonshotai/kimi-k2.6"),
+                "messages": formatted_messages,
                 "stream": True,
             }
-            with req.post(ollama_url, json=payload, stream=True, timeout=120) as resp:
+            
+            with req.post(url, headers=headers, json=payload, stream=True, timeout=120) as resp:
                 for line in resp.iter_lines():
                     if line:
-                        try:
-                            chunk = json.loads(line.decode("utf-8"))
-                            token = chunk.get("response", "")
-                            if token:
-                                yield f"data: {json.dumps({'token': token})}\n\n"
-                            if chunk.get("done"):
+                        decoded_line = line.decode("utf-8").strip()
+                        if decoded_line.startswith("data: "):
+                            data_str = decoded_line[6:]
+                            if data_str == "[DONE]":
                                 yield "data: [DONE]\n\n"
                                 break
-                        except Exception:
-                            continue
+                            try:
+                                chunk = json.loads(data_str)
+                                token = chunk.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                                if token:
+                                    yield f"data: {json.dumps({'token': token})}\n\n"
+                            except Exception:
+                                continue
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
             yield "data: [DONE]\n\n"
+                
     return Response(
         stream_with_context(generate()),
         mimetype="text/event-stream",

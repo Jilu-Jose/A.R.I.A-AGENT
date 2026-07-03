@@ -4,21 +4,28 @@ from sklearn.cluster import KMeans
 from loguru import logger
 import os
 def _get_llm():
-    from langchain_ollama import OllamaLLM
-    base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-    model = os.environ.get("OLLAMA_MODEL", "qwen2.5:0.5b")
-    return OllamaLLM(
+    from langchain_openai import ChatOpenAI
+    base_url = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
+    model = os.environ.get("NVIDIA_MODEL", "moonshotai/kimi-k2.6")
+    api_key = os.environ.get("NVIDIA_API_KEY", "")
+    return ChatOpenAI(
         model=model,
         base_url=base_url,
+        api_key=api_key,
         temperature=0.3,
     )
+
+from pydantic import BaseModel, Field
+class TopicName(BaseModel):
+    name: str = Field(description="A concise 3-word topic name for the articles.")
+
 def _generate_topic_name(titles, llm):
     titles_text = "; ".join(titles[:5])                              
-    prompt = f"Give a 3-word topic name for articles titled: {titles_text}. Reply with only the topic name."
+    prompt = f"Give a 3-word topic name for articles titled: {titles_text}."
     try:
-        response = llm.invoke(prompt)
-        name = response.strip().strip('"').strip("'").strip(".")
-        name = name.split("\n")[0].strip()
+        structured_llm = llm.with_structured_output(TopicName)
+        response = structured_llm.invoke(prompt)
+        name = response.name.strip()
         if len(name) > 50:
             name = name[:50].strip()
         if not name:

@@ -27,7 +27,7 @@
         <div class="cs-footer">
             <div class="cs-model-badge">
                 <span class="cs-model-dot"></span>
-                <span id="cs-model-name">{{ config.get('OLLAMA_MODEL', 'qwen:0.5b') }}</span>
+                A.R.I.A uses the {{ config.get('NVIDIA_MODEL', 'moonshotai/kimi-k2.6') }} model hosted on NVIDIA NIM.</span>
             </div>
         </div>
     </aside>
@@ -43,7 +43,7 @@
                 </button>
                 <div class="cm-title-area">
                     <h1 class="cm-title">Research Assistant</h1>
-                    <span class="cm-subtitle">A.R.I.A · <span id="chat-model-label">{{ config.get('OLLAMA_MODEL', 'Local LLM') }}</span></span>
+                    <span class="cm-subtitle">A.R.I.A · <span id="chat-model-label">{{ config.get('NVIDIA_MODEL', 'Local LLM') }}</span></span>
                 </div>
             </div>
             <div class="cm-topbar-right">
@@ -107,7 +107,7 @@
                     </button>
                 </div>
             </div>
-            <p class="cm-hint">A.R.I.A uses your local Ollama model · Press <kbd>Enter</kbd> to send, <kbd>Shift+Enter</kbd> for new line</p>
+            <p class="cm-hint">A.R.I.A uses the cloud-hosted NVIDIA API · Press <kbd>Enter</kbd> to send, <kbd>Shift+Enter</kbd> for new line</p>
         </div>
     </div>
 </div>
@@ -134,7 +134,8 @@ const toast         = document.getElementById('toast');
 
 let conversationHistory = [];
 let isStreaming = false;
-let allSessions = JSON.parse(localStorage.getItem('aria_sessions') || '[]');
+const STORAGE_KEY = 'aria_sessions_{{ current_user.id }}';
+let allSessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 let currentSessionId = null;
 
 // ── Sidebar Toggle ─────────────────────────────────────────────────
@@ -195,7 +196,7 @@ function saveSession() {
     };
     if (existing >= 0) allSessions[existing] = session;
     else allSessions.unshift(session);
-    localStorage.setItem('aria_sessions', JSON.stringify(allSessions));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allSessions));
     renderHistory();
 }
 
@@ -231,7 +232,7 @@ function renderHistory() {
 
 function deleteSession(id) {
     allSessions = allSessions.filter(s => s.id !== id);
-    localStorage.setItem('aria_sessions', JSON.stringify(allSessions));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allSessions));
     if (currentSessionId === id) startNewConversation(false);
     renderHistory();
     showToast('Conversation deleted');
@@ -384,7 +385,7 @@ async function sendMessage() {
 
     } catch (err) {
         document.getElementById('thinking-bubble')?.remove();
-        appendAriaMessage('Sorry, I could not reach the model. Please ensure Ollama is running at the configured address.');
+        appendAriaMessage('Sorry, I could not reach the model. Please check your API key and connection.');
     }
 
     isStreaming = false;

@@ -187,7 +187,7 @@ ollama pull qwen2.5:0.5b
 
 **5. Run the application**
 ```bash
-python app.py
+python run.py
 ```
 
 **6. (Optional) Start the background scheduler**

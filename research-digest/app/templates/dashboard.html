@@ -36,10 +36,14 @@
             {% endif %}
         </div>
         <div class="feature-desc">
-            A deep dive into how AI-assisted design is reducing structural waste in emerging vertical forests.
+            {% if digests and digests[0].clusters %}
+                {{ digests[0].clusters[0].summary.split('\n')[0].lstrip('-•* ') }}
+            {% else %}
+                Generate your first digest to see a research briefing here.
+            {% endif %}
         </div>
         <a href="{% if digests %}{{ url_for('dashboard.view_digest', digest_id=digests[0].id) }}{% else %}#{% endif %}" class="feature-link">
-            READ FULL BRIEF <span>14 min read</span>
+            READ FULL BRIEF <span>{% if digests %}{{ (digests[0].article_count * 2) | default(5) }} min read{% else %}— min read{% endif %}</span>
         </a>
     </div>
 
@@ -96,7 +100,7 @@
 <div class="history-section">
     <div class="history-header">
         <div class="history-title">Digest History</div>
-        <a href="#" class="history-link">VIEW ALL ARCHIVES ></a>
+        <a href="{{ url_for('dashboard.archives') }}" class="history-link">VIEW ALL ARCHIVES ></a>
     </div>
     
     <div class="history-grid">

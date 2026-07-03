@@ -31,12 +31,12 @@ def run_now():
 @dashboard_bp.route("/digest/<int:digest_id>")
 @login_required
 def view_digest(digest_id):
-    import ast
+    import json as _json
     digest = Digest.query.filter_by(id=digest_id, user_id=current_user.id).first_or_404()
     for cluster in digest.clusters:
         try:
-            cluster._parsed_urls = ast.literal_eval(cluster.article_urls)
-            cluster._parsed_titles = ast.literal_eval(cluster.article_titles)
+            cluster._parsed_urls = _json.loads(cluster.article_urls)
+            cluster._parsed_titles = _json.loads(cluster.article_titles)
         except Exception:
             cluster._parsed_urls = []
             cluster._parsed_titles = []
@@ -53,7 +53,7 @@ def archives():
 @dashboard_bp.route("/library")
 @login_required
 def library():
-    import ast
+    import json as _json
     digests = (
         Digest.query.filter_by(user_id=current_user.id)
         .order_by(Digest.created_at.desc())
@@ -63,8 +63,8 @@ def library():
     for digest in digests:
         for cluster in digest.clusters:
             try:
-                urls = ast.literal_eval(cluster.article_urls)
-                titles = ast.literal_eval(cluster.article_titles)
+                urls = _json.loads(cluster.article_urls)
+                titles = _json.loads(cluster.article_titles)
                 for i in range(len(urls)):
                     library_items.append({
                         'title': titles[i] if i < len(titles) else "Unknown Title",

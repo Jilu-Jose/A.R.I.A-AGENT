@@ -17,6 +17,8 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev")
+    app.config["NVIDIA_MODEL"] = os.environ.get("NVIDIA_MODEL", "moonshotai/kimi-k2.6")
     init_db(app)
     login_manager.init_app(app)
     from app.routes.auth import auth_bp

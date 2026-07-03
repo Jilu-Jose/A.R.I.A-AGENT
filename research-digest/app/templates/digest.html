@@ -26,7 +26,7 @@
             
             <div class="cluster-main">
                 <div class="cluster-img-box">
-                    <div class="cluster-img-tag">LEAD INTELLIGENCE</div>
+                    <div class="cluster-img-tag">LEAD INTELLIGENCE — {{ cluster.topic_name | upper }}</div>
                 </div>
 
                 <div class="bullet-grid">
@@ -58,20 +58,23 @@
                     <div class="side-card-title">Cluster Dynamics</div>
                     <div class="side-card-sub">Key Signals</div>
                     <ul class="side-list">
-                        <li>High-frequency shifts in related indices.</li>
-                        <li>Volatility spikes inferred from sources.</li>
-                        <li>Cross-domain intersections discovered.</li>
-                        <li>Sentiment-driven trends highlighted.</li>
+                        <li>{{ cluster.summary.split('\n') | select | list | length }} key insights extracted.</li>
+                        <li>{% if cluster._parsed_urls %}{{ cluster._parsed_urls | length }}{% else %}0{% endif %} primary sources analyzed.</li>
+                        <li>Topic cluster: {{ cluster.topic_name }}.</li>
+                        <li>Part of digest VOL. {{ digest.id }}.</li>
                     </ul>
-                    <a href="#" class="side-link-action" style="display:flex; align-items:center; gap:0.25rem;">
-                        VIEW FULL ANALYSIS 
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 12px; height: 12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" /></svg>
-                    </a>
                 </div>
                 
+                {% if cluster._parsed_urls and cluster._parsed_titles and cluster._parsed_urls | length > 0 %}
+                <div class="side-card" style="background: linear-gradient(-45deg, #4b5563, #1f2937); color: white; border: none; min-height: 150px; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.25rem;">
+                    <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; margin-bottom: 0.5rem;">DEEP DIVE SPOTLIGHT</div>
+                    <a href="{{ cluster._parsed_urls[0] }}" target="_blank" style="font-family: var(--font-heading); font-size: 0.9rem; font-style: italic; color: white; text-decoration: none; line-height: 1.4;">{{ cluster._parsed_titles[0] }}</a>
+                </div>
+                {% else %}
                 <div class="side-card" style="background: linear-gradient(-45deg, #4b5563, #1f2937); color: white; border: none; min-height: 150px; display: flex; align-items: flex-end;">
                     <div style="font-family: var(--font-heading); font-size: 1rem; font-style: italic;">Deep Dive Spotlight</div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -81,8 +84,8 @@
         <div class="digest-curated-by">CURATED BY A.R.I.A INTEL-ENGINE</div>
         <div class="digest-quote">"The pursuit of knowledge is not the accumulation of facts, but the synthesis of connections across the void."</div>
         <div class="digest-actions">
-            <a href="#" class="action-link">DOWNLOAD PDF</a>
-            <a href="#" class="action-link">SHARE DIGEST</a>
+            <span class="action-link" style="opacity:0.5; cursor:default;" title="Coming soon">DOWNLOAD PDF</span>
+            <span class="action-link" style="opacity:0.5; cursor:default;" title="Coming soon">SHARE DIGEST</span>
             <a href="{{ url_for('dashboard.index') }}" class="action-link">ARCHIVE VIEW</a>
         </div>
     </div>
