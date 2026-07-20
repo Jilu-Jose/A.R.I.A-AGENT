@@ -1,14 +1,16 @@
-
 import sys
 import os
 from dotenv import load_dotenv
+
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from apscheduler.schedulers.blocking import BlockingScheduler
+
+from apscheduler.schedulers.background import BackgroundScheduler
 from loguru import logger
-from app import create_app
+from app.database import SessionLocal
 from app.models import User
-from main import run_for_user
+from pipeline import run_for_user
+
 logger.add(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "scheduler.log"),
     rotation="7 days",
@@ -16,10 +18,10 @@ logger.add(
     level="INFO",
     format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
 )
+
 def daily_digest_job():
-    app = create_app()
-    with app.app_context():
-        users = User.query.filter_by(is_active_user=True).all()
+    with SessionLocal() as db:
+        users = db.query(User).filter_by(is_active_user=True).all()
         logger.info(f"Daily digest job started — processing {len(users)} active users")
         success_count = 0
         error_count = 0
@@ -41,8 +43,9 @@ def daily_digest_job():
             f"{error_count} errors, "
             f"{len(users) - success_count - error_count} skipped"
         )
-def start_scheduler():
-    scheduler = BlockingScheduler()
+
+def init_scheduler(app=None):
+    scheduler = BackgroundScheduler()
     scheduler.add_job(
         daily_digest_job,
         trigger="cron",
@@ -52,13 +55,14 @@ def start_scheduler():
         name="Daily Research Digest",
         misfire_grace_time=3600,
     )
+    scheduler.start()
     logger.info("A.R.I.A Scheduler started — daily digest runs at 07:00")
-    print("◈ A.R.I.A Scheduler started — daily digest runs at 07:00")
-    print("  Press Ctrl+C to stop.")
-    try:
-        scheduler.start()
-    except (KeyboardInterrupt, SystemExit):
-        logger.info("Scheduler stopped.")
-        print("\n◈ Scheduler stopped.")
+
 if __name__ == "__main__":
-    start_scheduler()
+    from apscheduler.schedulers.blocking import BlockingScheduler
+    def start_standalone():
+        scheduler = BlockingScheduler()
+        scheduler.add_job(daily_digest_job, trigger="cron", hour=7, minute=0)
+        print("◈ Standalone Scheduler started")
+        scheduler.start()
+    start_standalone()

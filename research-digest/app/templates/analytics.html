@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - A.R.I.A{% endblock %}
+
+{% block content %}
+<div class="header-area" style="margin-bottom: 2rem;">
+    <h1 style="font-family: var(--font-heading); font-size: 1.5rem; letter-spacing: 1px;">ANALYTICS DASHBOARD</h1>
+    <p style="color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">A.R.I.A INTELLIGENCE METRICS</p>
+</div>
+
+<!-- Stats Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; text-align: center;">
+        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Completed Researches</div>
+        <div style="font-size: 2rem; font-family: var(--font-heading); color: var(--accent);">{{ completed_researches }}</div>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; text-align: center;">
+        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Ongoing Researches</div>
+        <div style="font-size: 2rem; font-family: var(--font-heading); color: var(--accent);">{{ ongoing_researches }}</div>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; text-align: center;">
+        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Pinned Papers</div>
+        <div style="font-size: 2rem; font-family: var(--font-heading); color: var(--accent);">{{ pinned_papers }}</div>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; text-align: center;">
+        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Total Articles Analyzed</div>
+        <div style="font-size: 2rem; font-family: var(--font-heading); color: var(--accent);">{{ total_articles }}</div>
+    </div>
+
+</div>
+
+<!-- Charts Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+    
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem;">
+        <h3 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; text-align: center;">Research Velocity (Last 30 Days)</h3>
+        <canvas id="velocityChart"></canvas>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem;">
+        <h3 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; text-align: center;">Top Topics Discovered</h3>
+        <canvas id="topicsChart"></canvas>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // CSS Variables for styling the charts
+        const getCSSVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888';
+        
+        const textColor = getCSSVar('--text-main');
+        const gridColor = getCSSVar('--border');
+        const accentColor = getCSSVar('--accent');
+
+        // Configure Chart.js globals for Dark/Light mode support
+        Chart.defaults.color = textColor;
+        Chart.defaults.font.family = getCSSVar('--font-main');
+
+        // Line Chart: Velocity
+        const velocityCtx = document.getElementById('velocityChart').getContext('2d');
+        const velocityChart = new Chart(velocityCtx, {
+            type: 'line',
+            data: {
+                labels: {{ dates_list | safe }},
+                datasets: [{
+                    label: 'Digests Generated',
+                    data: {{ counts_list | safe }},
+                    borderColor: accentColor,
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: accentColor
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { maxTicksLimit: 7 }
+                    },
+                    y: {
+                        grid: { color: gridColor },
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Doughnut Chart: Topics
+        const topicsCtx = document.getElementById('topicsChart').getContext('2d');
+        const topicsChart = new Chart(topicsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ topics | safe }},
+                datasets: [{
+                    data: {{ topic_counts | safe }},
+                    backgroundColor: [
+                        accentColor,
+                        '#818cf8',
+                        '#a5b4fc',
+                        '#c7d2fe',
+                        '#e0e7ff'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, color: textColor, font: { size: 10 } }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // Listen for Theme changes (MutationObserver on <html> data-theme attribute)
+        const observer = new MutationObserver(() => {
+            const newTextColor = getCSSVar('--text-main');
+            const newGridColor = getCSSVar('--border');
+            
+            Chart.defaults.color = newTextColor;
+
+            velocityChart.options.scales.x.grid.color = newGridColor;
+            velocityChart.options.scales.y.grid.color = newGridColor;
+            velocityChart.update();
+            
+            topicsChart.options.plugins.legend.labels.color = newTextColor;
+            topicsChart.update();
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    });
+</script>
+{% endblock %}

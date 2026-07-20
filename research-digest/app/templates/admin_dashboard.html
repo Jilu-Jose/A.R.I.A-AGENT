@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - A.R.I.A{% endblock %}
+
+{% block content %}
+<div class="header-area" style="margin-bottom: 2rem;">
+    <h1 style="font-family: var(--font-heading); font-size: 1.5rem; letter-spacing: 1px;">ADMINISTRATIVE DASHBOARD</h1>
+    <p style="color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">USER ACCESS REQUESTS & APPROVALS</p>
+</div>
+
+<div class="light-box" style="padding: 1.5rem; overflow-x: auto;">
+    <table class="feeds-table">
+        <thead>
+            <tr>
+                <th>USER / EMAIL</th>
+                <th>ROLE</th>
+                <th>TIER</th>
+                <th>DOC VERIFICATION</th>
+                <th>PAYMENT</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div style="font-weight: 600; color: var(--text-main);">{{ u.username }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ u.email }}</div>
+                </td>
+                <td>{{ u.role or "N/A" }}</td>
+                <td>
+                    <span style="background: rgba(99,102,241,0.1); color: var(--accent); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+                        Tier {{ u.payment_tier }}
+                    </span>
+                </td>
+                <td>
+                    {% if u.verification_doc_path %}
+                        <a href="{{ url_for('static', filename=u.verification_doc_path) }}" target="_blank" class="action-link" title="View Uploaded Document">VIEW DOC</a>
+                    {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">None provided</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form action="{{ url_for('admin.toggle_payment', user_id=u.id) }}" method="POST" style="display:inline;">
+                        {% if u.payment_status %}
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: #10b981; font-weight: bold; font-size: 0.85rem;" title="Click to unmark">VERIFIED</button>
+                        {% else %}
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: #ef4444; font-weight: bold; font-size: 0.85rem;" title="Click to mark as paid">UNVERIFIED</button>
+                        {% endif %}
+                    </form>
+                </td>
+                <td>
+                    {% if u.is_approved %}
+                        <span style="color: #10b981; font-weight: 600; font-size: 0.85rem;">APPROVED</span>
+                    {% else %}
+                        <span style="color: #f59e0b; font-weight: 600; font-size: 0.85rem;">PENDING</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% if not u.is_approved %}
+                            <form action="{{ url_for('admin.approve_user', user_id=u.id) }}" method="POST">
+                                <button type="submit" class="action-link" style="border: none; background: transparent; cursor: pointer;">APPROVE</button>
+                            </form>
+                        {% endif %}
+                        <form action="{{ url_for('admin.reject_user', user_id=u.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to reject and delete this user?');">
+                            <button type="submit" class="action-link" style="border: none; background: transparent; cursor: pointer; color: #ef4444;">REJECT</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No pending user requests found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

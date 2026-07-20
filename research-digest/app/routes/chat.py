@@ -2,6 +2,7 @@ import os
 import json
 from flask import Blueprint, render_template, request, Response, stream_with_context
 from flask_login import login_required
+from app.routes.auth import approved_required
 chat_bp = Blueprint("chat", __name__)
 SYSTEM_PROMPT = (
     "You are A.R.I.A (Autonomous Research Intelligence Agent), a knowledgeable "
@@ -12,11 +13,11 @@ SYSTEM_PROMPT = (
 )
 
 @chat_bp.route("/chat")
-@login_required
+@approved_required
 def index():
     return render_template("chat.html")
 @chat_bp.route("/api/chat", methods=["POST"])
-@login_required
+@approved_required
 def stream_chat():
     data = request.get_json()
     messages = data.get("messages", [])

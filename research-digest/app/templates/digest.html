@@ -84,8 +84,8 @@
         <div class="digest-curated-by">CURATED BY A.R.I.A INTEL-ENGINE</div>
         <div class="digest-quote">"The pursuit of knowledge is not the accumulation of facts, but the synthesis of connections across the void."</div>
         <div class="digest-actions">
-            <span class="action-link" style="opacity:0.5; cursor:default;" title="Coming soon">DOWNLOAD PDF</span>
-            <span class="action-link" style="opacity:0.5; cursor:default;" title="Coming soon">SHARE DIGEST</span>
+            <a href="{{ url_for('dashboard.download_pdf', digest_id=digest.id) }}" class="action-link" title="Download Digest as PDF">DOWNLOAD PDF</a>
+            <span class="action-link" style="cursor:pointer;" onclick="navigator.clipboard.writeText(window.location.href); showToast('Link copied to clipboard!', 'success');" title="Share Digest">SHARE DIGEST</span>
             <a href="{{ url_for('dashboard.index') }}" class="action-link">ARCHIVE VIEW</a>
         </div>
     </div>

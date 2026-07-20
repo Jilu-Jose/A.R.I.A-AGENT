@@ -59,3 +59,16 @@ logs/
 
 # MacOS
 .DS_Store
+
+# Node / React / Vite (Frontend)
+client/node_modules/
+client/dist/
+client/dist-ssr/
+client/*.local
+client/.npm/
+client/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache

@@ -32,7 +32,8 @@ def _url_hash(url):
     return hashlib.md5(url.encode("utf-8")).hexdigest()
 def _fetch_article_text(url, timeout=10):
     try:
-        headers = {"User-Agent": "ARIA-Research-Agent/1.0"}
+        from app.config import USER_AGENT
+        headers = {"User-Agent": USER_AGENT}
         resp = requests.get(url, timeout=timeout, headers=headers)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "lxml")
@@ -79,6 +80,12 @@ def ingest_feeds(feeds, user_id):
                         content = fetched
                 if not content:
                     content = title
+                
+                if title == "Untitled":
+                    from urllib.parse import urlparse
+                    parsed_url = urlparse(url)
+                    title = parsed_url.path.split('/')[-1] or parsed_url.netloc or "Unknown Title"
+                    
                 doc = Document(
                     page_content=content,
                     metadata={

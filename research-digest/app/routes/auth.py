@@ -1,24 +1,25 @@
 
 import os
 import yaml
+from functools import wraps
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app.database import db
 from app.models import User, Feed
 from app.auth import hash_password, verify_password
+
 auth_bp = Blueprint("auth", __name__)
-def _load_default_feeds():
-    config_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        "config",
-        "default_feeds.yaml",
-    )
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-            return data.get("feeds", [])
-    except Exception:
-        return []
+
+def approved_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for("auth.login"))
+        if not current_user.is_approved and not getattr(current_user, 'is_admin', False):
+            return redirect(url_for("auth.pending"))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
@@ -49,22 +50,13 @@ def register():
             username=username,
             email=email,
             password_hash=hash_password(password),
+            is_approved=False
         )
         db.session.add(user)
         db.session.commit()
-        default_feeds = _load_default_feeds()
-        for feed_data in default_feeds:
-            feed = Feed(
-                user_id=user.id,
-                name=feed_data.get("name", ""),
-                url=feed_data.get("url", ""),
-                tags=feed_data.get("tags", ""),
-            )
-            db.session.add(feed)
-        db.session.commit()
-        login_user(user)
-        flash("Welcome to A.R.I.A! Your account has been created.", "success")
-        return redirect(url_for("dashboard.index"))
+
+        flash("Registration successful. Please log in to request services.", "success")
+        return redirect(url_for("auth.login"))
     return render_template("register.html")
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -77,6 +69,10 @@ def login():
         if user and verify_password(user.password_hash, password):
             login_user(user, remember=True)
             session.permanent = True
+            
+            if not user.is_approved and not user.is_admin:
+                return redirect(url_for("auth.pending"))
+                
             flash("Welcome back!", "success")
             next_page = request.args.get("next")
             return redirect(next_page or url_for("dashboard.index"))
@@ -90,3 +86,41 @@ def logout():
     logout_user()
     flash("You have been logged out.", "success")
     return redirect(url_for("auth.login"))
+
+@auth_bp.route("/pending")
+@login_required
+def pending():
+    if current_user.is_approved or getattr(current_user, 'is_admin', False):
+        return redirect(url_for("dashboard.index"))
+    return render_template("pending.html")
+
+@auth_bp.route("/submit_request", methods=["POST"])
+@login_required
+def submit_request():
+    if current_user.is_approved or getattr(current_user, 'is_admin', False):
+        return redirect(url_for("dashboard.index"))
+        
+    import os
+    from werkzeug.utils import secure_filename
+    
+    role = request.form.get("role", "Others")
+    payment_tier = int(request.form.get("payment_tier", 1))
+    
+    gov_id_file = request.files.get("gov_id")
+    doc_path = current_user.verification_doc_path
+    
+    if gov_id_file and gov_id_file.filename:
+        filename = secure_filename(gov_id_file.filename)
+        upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static", "uploads", "verification")
+        os.makedirs(upload_dir, exist_ok=True)
+        file_path = os.path.join(upload_dir, f"{current_user.username}_{filename}")
+        gov_id_file.save(file_path)
+        doc_path = f"uploads/verification/{current_user.username}_{filename}"
+
+    current_user.role = role
+    current_user.payment_tier = payment_tier
+    current_user.verification_doc_path = doc_path
+    db.session.commit()
+    
+    flash("Your request has been submitted and is pending approval.", "success")
+    return redirect(url_for("auth.pending"))

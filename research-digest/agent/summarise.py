@@ -9,20 +9,16 @@ class Critique(BaseModel):
     is_valid: bool = Field(description="True if the summary has exactly 4 bullets and contains no hallucinations based on the source text, False otherwise.")
     feedback: str = Field(description="Feedback on what needs to be fixed if is_valid is False.")
 
-def _get_llm():
-    import os
-    nvidia_api_key = os.environ.get("NVIDIA_API_KEY", "")
-    if nvidia_api_key and nvidia_api_key not in ("your_nvidia_ngc_api_key", "mock-key", ""):
-        from langchain_openai import ChatOpenAI
-        base_url = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
-        model = os.environ.get("NVIDIA_MODEL", "moonshotai/kimi-k2.6")
-        logger.info(f"Using NVIDIA NIM API: {model}")
-        return ChatOpenAI(
 def _get_llm(temperature=0.3):
+    import os
     from langchain_openai import ChatOpenAI
+    from loguru import logger
+    
     base_url = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
     model = os.environ.get("NVIDIA_MODEL", "moonshotai/kimi-k2.6")
     api_key = os.environ.get("NVIDIA_API_KEY", "")
+    
+    logger.info(f"Using NVIDIA NIM API: {model}")
     return ChatOpenAI(
         model=model,
         base_url=base_url,
