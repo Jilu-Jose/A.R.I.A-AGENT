@@ -3,8 +3,9 @@ import { api } from '../api';
 import {
   Heart, MessageCircle, Share2, Bookmark, ExternalLink,
   Hash, TrendingUp, Search, ChevronDown, Send, X,
-  Loader2, Compass, AtSign, RefreshCw, Star
+  Loader2, Compass, AtSign, RefreshCw, Star, ArrowLeft, Home
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Post {
   id: string;
@@ -281,6 +282,7 @@ export default function Explore() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
 const MOCK_POSTS: Post[] = [
   {
@@ -487,10 +489,19 @@ const MOCK_TOPICS: Topic[] = [
     : posts;
 
   return (
-    <div className="flex gap-6 max-w-6xl mx-auto pb-20 w-full">
+    <div className="flex flex-col gap-4 max-w-6xl mx-auto pb-20 w-full">
+      <div className="flex items-center gap-2">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <ArrowLeft size={16} /> Go Back
+        </button>
+        <button onClick={() => navigate('/')} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <Home size={16} /> Home
+        </button>
+      </div>
 
-      {/* Main Feed */}
-      <div className="flex-1 min-w-0 space-y-6">
+      <div className="flex gap-6 w-full">
+        {/* Main Feed */}
+        <div className="flex-1 min-w-0 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -620,6 +631,7 @@ const MOCK_TOPICS: Topic[] = [
           </div>
         </div>
       </aside>
+      </div>
     </div>
   );
 }

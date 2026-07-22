@@ -1,4 +1,5 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 
 export const api = axios.create({
   baseURL: "/api",
@@ -21,6 +22,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/login";
+    } else {
+      const message = error.response?.data?.detail || error.response?.data?.error || "An unexpected error occurred.";
+      toast.error(message);
     }
     return Promise.reject(error);
   }

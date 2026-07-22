@@ -156,3 +156,4 @@ def stream_chat(chat_request: ChatRequest, current_user: User = Depends(get_appr
         return StreamingResponse(collab_generate(user_message), media_type="text/event-stream")
         
     return StreamingResponse(generate(), media_type="text/event-stream")
+

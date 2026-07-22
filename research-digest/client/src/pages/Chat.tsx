@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Paperclip, Plus, Trash2, MessageSquare, X, FileText, Loader2 } from 'lucide-react';
+import { Send, Paperclip, Plus, Trash2, MessageSquare, X, FileText, Loader2, ArrowLeft, Home } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -39,6 +40,7 @@ function renderMarkdown(text: string) {
 
 export default function Chat() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState<ChatSession[]>([
     { id: generateId(), title: 'New conversation', messages: [SYSTEM_GREETING], createdAt: new Date() }
   ]);
@@ -252,14 +254,31 @@ export default function Chat() {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Chat Topbar */}
-        <div className="h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f1117] shrink-0">
-          <button
-            onClick={() => setSidebarOpen(o => !o)}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400"
-            title="Toggle history"
-          >
-            <MessageSquare size={18} />
-          </button>
+        <div className="h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f1117] shrink-0 gap-2">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400"
+              title="Go Back"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400"
+              title="Home"
+            >
+              <Home size={18} />
+            </button>
+            <div className="w-px h-6 bg-gray-200 dark:bg-gray-800 mx-1"></div>
+            <button
+              onClick={() => setSidebarOpen(o => !o)}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400"
+              title="Toggle history"
+            >
+              <MessageSquare size={18} />
+            </button>
+          </div>
           <div className="text-center">
             <div className="font-bold text-sm tracking-wide">A.R.I.A Assistant</div>
             <div className="text-xs text-gray-400">Autonomous Research Intelligence</div>

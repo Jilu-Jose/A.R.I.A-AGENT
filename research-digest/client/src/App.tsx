@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { Toaster } from "react-hot-toast";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -48,6 +49,10 @@ function ProtectedRoute({
 function App() {
   return (
     <AuthProvider>
+      <Toaster position="bottom-right" toastOptions={{ 
+        style: { background: '#1a1d27', color: '#fff', border: '1px solid #333' },
+        success: { iconTheme: { primary: '#fff', secondary: '#000' } }
+      }} />
       <Router>
         <Routes>
           <Route path="/" element={<Landing />} />

@@ -64,7 +64,7 @@ async def async_run_paper_analyst(paper_id: int, title: str, url: str):
     
     nvidia_api_key = os.environ.get("NVIDIA_API_KEY", "")
     if not nvidia_api_key:
-        return
+        raise ValueError("NVIDIA_API_KEY is not set in environment variables.")
         
     api_url = f"{os.environ.get('NVIDIA_BASE_URL', 'https://integrate.api.nvidia.com/v1')}/chat/completions"
     headers = {
@@ -95,8 +95,10 @@ async def async_run_paper_analyst(paper_id: int, title: str, url: str):
             json.dump(analysis, f, indent=2)
             
         loguru.logger.info(f"Analysis saved for paper {paper_id}")
+        return analysis
     except Exception as e:
         loguru.logger.error(f"LLM analysis failed: {e}")
+        raise Exception(f"Failed to analyze paper: {str(e)}")
 
 if __name__ == "__main__":
     if len(sys.argv) > 3:

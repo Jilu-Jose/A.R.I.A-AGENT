@@ -1,18 +1,33 @@
 import React, { useState } from 'react';
-import { FileSearch, Copy, Check, Play, FileText } from 'lucide-react';
+import { FileSearch, Copy, Check, Play, FileText, Search } from 'lucide-react';
+import { api } from '../../api';
 
 export default function Summarisation() {
   const [isRunning, setIsRunning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [result, setResult] = useState<any[] | null>(null);
 
-  const handleRun = () => {
+  const handleRun = async () => {
+    if (!topic.trim()) return;
     setIsRunning(true);
-    setTimeout(() => setIsRunning(false), 2000);
+    setResult(null);
+    try {
+      const res = await api.post("/agents/summarize", { topic });
+      setResult(res.data);
+    } catch (e) {
+      // toast interceptor will handle error
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const handleCopy = () => {
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (result) {
+      navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -39,13 +54,16 @@ export default function Summarisation() {
         {/* Input */}
         <div className="flex flex-col bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
            <div className="flex items-center justify-between mb-4">
-             <h3 className="font-bold flex items-center gap-2"><FileText size={18} /> Source Text</h3>
-             <button className="text-xs font-semibold px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700">Paste Abstract</button>
+             <h3 className="font-bold flex items-center gap-2"><Search size={18} /> Research Topic</h3>
            </div>
-           <textarea 
-             placeholder="Paste the abstract or text of the paper you wish to summarize here..."
-             className="flex-1 w-full p-4 bg-gray-50 dark:bg-[#13151f] border border-gray-200 dark:border-gray-800 rounded-xl text-sm resize-none outline-none focus:border-black dark:focus:border-white transition-colors"
-           ></textarea>
+           <input 
+             type="text"
+             value={topic}
+             onChange={(e) => setTopic(e.target.value)}
+             onKeyDown={(e) => e.key === 'Enter' && handleRun()}
+             placeholder="e.g. LLM Reasoning..."
+             className="w-full p-4 bg-gray-50 dark:bg-[#13151f] border border-gray-200 dark:border-gray-800 rounded-xl text-sm outline-none focus:border-black dark:focus:border-white transition-colors"
+           />
            
            <div className="mt-4 flex gap-4">
              <div className="flex-1">
@@ -88,11 +106,24 @@ export default function Summarisation() {
                    <div className="w-2 h-2 rounded-full bg-black dark:bg-white animate-bounce" style={{animationDelay: '150ms'}}></div>
                    <div className="w-2 h-2 rounded-full bg-black dark:bg-white animate-bounce" style={{animationDelay: '300ms'}}></div>
                  </div>
-                 <p className="font-mono text-xs">Extracting key sentences...</p>
+                 <p className="font-mono text-xs">Summarizing clusters...</p>
+               </div>
+             ) : result ? (
+               <div className="space-y-6">
+                 {result.map((cluster, i) => (
+                   <div key={i} className="mb-4">
+                     <h4 className="font-bold mb-2">{cluster.topic_name}</h4>
+                     <ul className="list-disc pl-5 space-y-1">
+                       {cluster.summary_bullets?.map((bullet: string, j: number) => (
+                         <li key={j} className="text-gray-600 dark:text-gray-400">{bullet}</li>
+                       ))}
+                     </ul>
+                   </div>
+                 ))}
                </div>
              ) : (
                <div className="opacity-50 flex items-center justify-center h-full">
-                 Enter text and click "Summarize Text" to see the output here.
+                 Enter topic and click "Summarize Text" to see the output here.
                </div>
              )}
            </div>

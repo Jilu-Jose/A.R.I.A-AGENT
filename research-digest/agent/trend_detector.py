@@ -10,8 +10,7 @@ def run_trend_detector():
 async def async_run_trend_detector():
     print("Starting Trend Detector Agent...")
     if not os.environ.get("BRAVE_API_KEY"):
-        print("Skipping Trend Detector: BRAVE_API_KEY not set.")
-        return
+        raise ValueError("BRAVE_API_KEY not set in environment variables.")
         
     # 1. Query Brave Search
     try:
@@ -25,14 +24,13 @@ async def async_run_trend_detector():
         search_text = result.content[0].text if result.content else ""
     except Exception as e:
         print(f"Brave Search MCP failed: {e}")
-        return
+        raise Exception(f"Brave Search failed: {str(e)}")
         
     # 2. Synthesize with LLM
     print("Synthesizing trending topics with LLM...")
     nvidia_api_key = os.environ.get("NVIDIA_API_KEY", "")
     if not nvidia_api_key:
-        print("Skipping synthesis: NVIDIA_API_KEY not set.")
-        return
+        raise ValueError("NVIDIA_API_KEY not set in environment variables.")
         
     url = f"{os.environ.get('NVIDIA_BASE_URL', 'https://integrate.api.nvidia.com/v1')}/chat/completions"
     
@@ -80,8 +78,10 @@ async def async_run_trend_detector():
             json.dump(topics, f, indent=2)
             
         print(f"Successfully saved {len(topics)} trending topics.")
+        return topics
     except Exception as e:
         print(f"LLM synthesis failed: {e}")
+        raise Exception(f"Failed to detect trends: {str(e)}")
 
 if __name__ == "__main__":
     run_trend_detector()

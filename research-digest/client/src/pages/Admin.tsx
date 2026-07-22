@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
-import { Shield, CheckCircle, XCircle, DollarSign, ChevronDown, ChevronUp, FileText, User, ExternalLink, Server, Cpu } from 'lucide-react';
+import { Shield, CheckCircle, XCircle, DollarSign, ChevronDown, ChevronUp, FileText, User, ExternalLink, Server, Cpu, ArrowLeft, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface AdminUser {
   id: number;
@@ -26,6 +27,7 @@ export default function Admin() {
   const [systemInfo, setSystemInfo] = useState<{agents: any[], mcp_servers: any[]} | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const fetchUsers = async () => {
     try {
@@ -90,6 +92,15 @@ export default function Admin() {
 
   return (
     <div className="max-w-5xl mx-auto pb-24">
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <ArrowLeft size={16} /> Go Back
+        </button>
+        <button onClick={() => navigate('/')} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <Home size={16} /> Home
+        </button>
+      </div>
+
       <div className="mb-8 flex items-center gap-3">
         <Shield size={28} className="text-gray-400" />
         <div>

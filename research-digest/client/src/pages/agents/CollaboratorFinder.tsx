@@ -1,12 +1,60 @@
 import React, { useState } from 'react';
 import { Users, Search, Filter, Mail, ExternalLink } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function CollaboratorFinder() {
   const [isRunning, setIsRunning] = useState(false);
+  const [domain, setDomain] = useState("");
+  const [result, setResult] = useState("");
 
-  const handleRun = () => {
+  const handleRun = async () => {
+    if (!domain.trim()) return;
     setIsRunning(true);
-    setTimeout(() => setIsRunning(false), 1500);
+    setResult("");
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${localStorage.getItem("token")}` 
+        },
+        body: JSON.stringify({ messages: [{ role: "user", content: `/collaborators ${domain}` }] })
+      });
+      
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let text = "";
+      
+      while (reader && !done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\\n");
+        for (const line of lines) {
+            if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]") {
+                    done = true;
+                    break;
+                }
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.token) {
+                        text += parsed.token;
+                        setResult(text);
+                    } else if (parsed.error) {
+                        toast.error(parsed.error);
+                    }
+                } catch (e) {}
+            }
+        }
+      }
+    } catch (e: any) {
+        toast.error("Failed to fetch collaborators.");
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -28,6 +76,9 @@ export default function CollaboratorFinder() {
             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleRun()}
               placeholder="Enter your research topic, abstract, or a target DOI..." 
               className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-[#13151f] border border-gray-200 dark:border-gray-800 rounded-xl text-black dark:text-white outline-none focus:border-black dark:focus:border-white transition-colors"
             />
@@ -45,47 +96,20 @@ export default function CollaboratorFinder() {
         </div>
 
         {/* Results */}
-        {isRunning ? (
+        {isRunning && !result ? (
           <div className="flex-1 flex flex-col items-center justify-center opacity-50">
             <Users size={48} className="animate-pulse mb-4" />
             <p className="font-mono text-sm animate-pulse">Matching research vectors...</p>
           </div>
-        ) : (
+        ) : result ? (
           <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-            {[
-              { name: "Dr. Elena Rostova", inst: "MIT / CSAIL", score: 94, topics: ["Neural Rendering", "NeRF", "3D Vision"] },
-              { name: "Prof. James Chen", inst: "Stanford University", score: 88, topics: ["Computer Vision", "Generative Models"] },
-              { name: "Sarah Jenkins, PhD", inst: "DeepMind", score: 85, topics: ["Reinforcement Learning", "NeRF"] },
-              { name: "Dr. Arthur Vidal", inst: "ETH Zurich", score: 79, topics: ["Robotics", "3D Reconstruction"] }
-            ].map((collab, i) => (
-              <div key={i} className="flex items-center justify-between p-5 border border-gray-200 dark:border-gray-800 rounded-xl hover:border-black dark:hover:border-white transition-all group">
-                <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-bold font-serif text-lg">
-                    {collab.name.split(' ')[collab.name.split(' ').length-1][0]}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-lg flex items-center gap-2">
-                      {collab.name}
-                      <span className="text-xs bg-black dark:bg-white text-white dark:text-black px-2 py-0.5 rounded-full">{collab.score}% Match</span>
-                    </h4>
-                    <p className="text-sm text-gray-500">{collab.inst}</p>
-                    <div className="flex gap-2 mt-2">
-                      {collab.topics.map((t, j) => (
-                        <span key={j} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md text-gray-600 dark:text-gray-400">{t}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800" title="Contact">
-                    <Mail size={18} />
-                  </button>
-                  <button className="p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800" title="View Profile">
-                    <ExternalLink size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
+            <div className="p-5 border border-gray-200 dark:border-gray-800 rounded-xl whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+              {result}
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+            Enter a research topic to find potential collaborators.
           </div>
         )}
       </div>

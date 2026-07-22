@@ -4,7 +4,8 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie, Legend
 } from 'recharts';
-import { TrendingUp, FileText, BookOpen, Rss, BarChart2, Calendar } from 'lucide-react';
+import { TrendingUp, FileText, BookOpen, Rss, BarChart2, Calendar, ArrowLeft, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Overview {
   total_digests: number;
@@ -69,6 +70,7 @@ export default function Analytics() {
   const [topics, setTopics] = useState<TopicData[]>([]);
   const [feedActivity, setFeedActivity] = useState<FeedActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     Promise.all([
@@ -114,6 +116,15 @@ export default function Analytics() {
 
   return (
     <div className="max-w-6xl mx-auto pb-24 space-y-8">
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <ArrowLeft size={16} /> Go Back
+        </button>
+        <button onClick={() => navigate('/')} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <Home size={16} /> Home
+        </button>
+      </div>
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <BarChart2 size={28} className="text-gray-400" />

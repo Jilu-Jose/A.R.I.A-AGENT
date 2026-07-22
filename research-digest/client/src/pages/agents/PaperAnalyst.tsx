@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
-import { FileText, Play, Link as LinkIcon, UploadCloud, Microscope, Crosshair, AlertTriangle } from 'lucide-react';
+import { FileText, Play, Link as LinkIcon, UploadCloud, Microscope, Crosshair, AlertTriangle, Lightbulb } from 'lucide-react';
+import { api } from '../../api';
 
 export default function PaperAnalyst() {
   const [isRunning, setIsRunning] = useState(false);
+  const [query, setQuery] = useState("");
+  const [result, setResult] = useState<any>(null);
 
-  const handleRun = () => {
+  const handleRun = async () => {
+    if (!query.trim()) return;
     setIsRunning(true);
-    setTimeout(() => setIsRunning(false), 2000);
+    setResult(null);
+    try {
+      const res = await api.post("/agents/analyze-paper", { query, url: "" });
+      setResult(res.data);
+    } catch (e) {
+      // api.ts interceptor will trigger toast
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -34,6 +46,9 @@ export default function PaperAnalyst() {
           <LinkIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text" 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleRun()}
             placeholder="Paste ArXiv URL or DOI..." 
             className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-[#13151f] border border-gray-200 dark:border-gray-800 rounded-xl text-black dark:text-white outline-none focus:border-black dark:focus:border-white transition-colors"
           />
@@ -51,40 +66,41 @@ export default function PaperAnalyst() {
              <FileText size={48} className="animate-pulse mb-4" />
              <p className="font-mono text-sm animate-pulse">Parsing document structure...</p>
           </div>
-        ) : (
+        ) : result ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
             <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
               <h3 className="font-bold mb-4 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
                 <Microscope size={18} /> Methodology
               </h3>
-              <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                <li>Utilizes a ResNet-50 backbone pre-trained on ImageNet.</li>
-                <li>Introduces a novel attention mechanism called "Spatial-Temporal Gate" to weight frame importance.</li>
-                <li>Training conducted on 4 NVIDIA A100 GPUs for 120 epochs using AdamW optimizer.</li>
-              </ul>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{result.methodology}</p>
             </div>
 
             <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
               <h3 className="font-bold mb-4 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
                 <Crosshair size={18} /> Key Findings
               </h3>
-              <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                <li>Achieved State-of-the-Art (SOTA) on Kinetics-400 with 84.2% Top-1 accuracy.</li>
-                <li>Reduced computational overhead (FLOPs) by 22% compared to the baseline ViT model.</li>
-                <li>Ablation study confirms the Spatial-Temporal Gate contributes +3.1% to the final accuracy.</li>
-              </ul>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{result.results}</p>
             </div>
 
             <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
               <h3 className="font-bold mb-4 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
                 <AlertTriangle size={18} /> Limitations
               </h3>
-              <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                <li>Performance degrades significantly on highly compressed, low-resolution video feeds.</li>
-                <li>The custom attention module is not easily compatible with TensorRT optimization out-of-the-box.</li>
-                <li>Did not evaluate on datasets with extremely long videos (e.g., Ego4D).</li>
-              </ul>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{result.limitations}</p>
             </div>
+            
+            <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5 md:col-span-2 lg:col-span-3">
+              <h3 className="font-bold mb-4 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
+                <Lightbulb size={18} /> Impact Statement
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{result.impact_statement}</p>
+            </div>
+
+          </div>
+        ) : (
+          <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+            Enter a paper URL or title to begin analysis.
           </div>
         )}
       </div>

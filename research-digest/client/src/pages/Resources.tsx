@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
-import { Plus, Trash2, Power, ExternalLink, Rss, Tag, Search, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Trash2, Power, ExternalLink, Rss, Tag, Search, CheckCircle2, XCircle, ArrowLeft, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Feed {
   id: number;
@@ -30,6 +31,7 @@ export default function Resources() {
   const [addingTags, setAddingTags] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
+  const navigate = useNavigate();
 
   const fetchFeeds = async () => {
     try {
@@ -103,6 +105,15 @@ export default function Resources() {
 
   return (
     <div className="max-w-5xl mx-auto pb-24 space-y-8">
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <ArrowLeft size={16} /> Go Back
+        </button>
+        <button onClick={() => navigate('/')} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <Home size={16} /> Home
+        </button>
+      </div>
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <Rss size={28} className="text-gray-400" />

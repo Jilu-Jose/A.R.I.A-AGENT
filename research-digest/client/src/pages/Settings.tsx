@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import { useAuth } from '../AuthContext';
-import { Terminal, User, Mail, Crown, Settings as SettingsIcon } from 'lucide-react';
+import { Terminal, User, Mail, Crown, Settings as SettingsIcon, ArrowLeft, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Settings() {
   const { user } = useAuth();
   const [logs, setLogs] = useState<string>('');
+  const navigate = useNavigate();
 
   const fetchLogs = async () => {
     try {
@@ -22,6 +24,15 @@ export default function Settings() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-24">
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <ArrowLeft size={16} /> Go Back
+        </button>
+        <button onClick={() => navigate('/')} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <Home size={16} /> Home
+        </button>
+      </div>
+
       <div className="flex items-center gap-3">
         <SettingsIcon size={28} className="text-gray-400" />
         <div>

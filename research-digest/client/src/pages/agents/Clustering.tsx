@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
-import { FolderTree, Play, SlidersHorizontal, BarChart } from 'lucide-react';
+import { FolderTree, Play, SlidersHorizontal, BarChart, Search } from 'lucide-react';
+import { api } from '../../api';
 
 export default function Clustering() {
   const [isRunning, setIsRunning] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [result, setResult] = useState<any[] | null>(null);
 
-  const handleRun = () => {
+  const handleRun = async () => {
+    if (!topic.trim()) return;
     setIsRunning(true);
-    setTimeout(() => setIsRunning(false), 2000);
+    setResult(null);
+    try {
+      const res = await api.post("/agents/cluster", { topic });
+      setResult(res.data);
+    } catch (e) {
+      // toast is handled by interceptor
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -37,8 +49,22 @@ export default function Clustering() {
               <SlidersHorizontal size={18} />
               <h3 className="font-bold">Algorithm Settings</h3>
             </div>
-            
             <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Search Topic for Papers</label>
+                <div className="relative">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input 
+                    type="text" 
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleRun()}
+                    placeholder="e.g. LLM Reasoning"
+                    className="w-full pl-10 pr-3 py-2 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl text-sm text-black dark:text-white outline-none focus:border-black dark:focus:border-white transition-colors"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Clustering Algorithm</label>
                 <select className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2 text-sm text-black dark:text-white outline-none focus:border-black dark:focus:border-white transition-colors">
@@ -80,53 +106,32 @@ export default function Clustering() {
               </div>
               <p className="text-gray-500 font-mono text-sm animate-pulse">Calculating semantic distances...</p>
             </div>
-          ) : (
+          ) : result ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                 {/* Mock Clusters */}
-                 <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5 hover:border-black dark:hover:border-white cursor-pointer transition-all">
-                   <div className="flex justify-between items-start mb-3">
-                     <h4 className="font-bold text-lg">Transformers in CV</h4>
-                     <span className="bg-gray-100 dark:bg-gray-800 text-xs px-2 py-1 rounded-md font-mono">24 Papers</span>
+                 {result.map((cluster, i) => (
+                   <div key={i} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5 hover:border-black dark:hover:border-white cursor-pointer transition-all">
+                     <div className="flex justify-between items-start mb-3">
+                       <h4 className="font-bold text-lg line-clamp-1">{cluster.topic_name}</h4>
+                       <span className="bg-gray-100 dark:bg-gray-800 text-xs px-2 py-1 rounded-md font-mono">{cluster.documents?.length || 0} Papers</span>
+                     </div>
+                     <p className="text-sm text-gray-500 mb-4 line-clamp-2">Documents related to {cluster.topic_name}</p>
+                     <div className="flex -space-x-2">
+                       {cluster.documents?.slice(0, 4).map((_, j) => (
+                          <div key={j} className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold">P{j+1}</div>
+                       ))}
+                       {cluster.documents?.length > 4 && (
+                         <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs font-bold">+{cluster.documents.length - 4}</div>
+                       )}
+                     </div>
                    </div>
-                   <p className="text-sm text-gray-500 mb-4 line-clamp-2">Research focusing on applying transformer architectures to computer vision tasks, moving away from CNNs.</p>
-                   <div className="flex -space-x-2">
-                     {[1,2,3,4].map(i => (
-                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold">P{i}</div>
-                     ))}
-                     <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs font-bold">+20</div>
-                   </div>
-                 </div>
-
-                 <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5 hover:border-black dark:hover:border-white cursor-pointer transition-all">
-                   <div className="flex justify-between items-start mb-3">
-                     <h4 className="font-bold text-lg">Federated Learning</h4>
-                     <span className="bg-gray-100 dark:bg-gray-800 text-xs px-2 py-1 rounded-md font-mono">18 Papers</span>
-                   </div>
-                   <p className="text-sm text-gray-500 mb-4 line-clamp-2">Privacy-preserving machine learning techniques distributed across decentralized edge devices or servers.</p>
-                   <div className="flex -space-x-2">
-                     {[1,2,3].map(i => (
-                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold">P{i+4}</div>
-                     ))}
-                     <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs font-bold">+15</div>
-                   </div>
-                 </div>
-
-                 <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5 hover:border-black dark:hover:border-white cursor-pointer transition-all">
-                   <div className="flex justify-between items-start mb-3">
-                     <h4 className="font-bold text-lg">Quantum Error Correction</h4>
-                     <span className="bg-gray-100 dark:bg-gray-800 text-xs px-2 py-1 rounded-md font-mono">8 Papers</span>
-                   </div>
-                   <p className="text-sm text-gray-500 mb-4 line-clamp-2">Techniques used to protect quantum information from errors due to decoherence and other quantum noise.</p>
-                   <div className="flex -space-x-2">
-                     {[1,2,3].map(i => (
-                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold">P{i+7}</div>
-                     ))}
-                     <div className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs font-bold">+5</div>
-                   </div>
-                 </div>
+                 ))}
               </div>
             </div>
+          ) : (
+             <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-12 flex flex-col items-center justify-center min-h-[400px]">
+                <p className="text-gray-400 text-sm">Enter a topic and run clustering to group research papers.</p>
+             </div>
           )}
         </div>
       </div>

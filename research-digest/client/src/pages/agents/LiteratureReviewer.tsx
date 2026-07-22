@@ -1,12 +1,63 @@
 import React, { useState } from 'react';
 import { BookOpen, FileText, Download, List, Play } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function LiteratureReviewer() {
   const [isRunning, setIsRunning] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [result, setResult] = useState("");
 
-  const handleRun = () => {
+  const handleRun = async () => {
+    if (!topic.trim()) {
+        toast.error("Please enter a topic for the literature review.");
+        return;
+    }
     setIsRunning(true);
-    setTimeout(() => setIsRunning(false), 3000);
+    setResult("");
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${localStorage.getItem("token")}` 
+        },
+        body: JSON.stringify({ messages: [{ role: "user", content: `/review ${topic}` }] })
+      });
+      
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let text = "";
+      
+      while (reader && !done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\\n");
+        for (const line of lines) {
+            if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]") {
+                    done = true;
+                    break;
+                }
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.token) {
+                        text += parsed.token;
+                        setResult(text);
+                    } else if (parsed.error) {
+                        toast.error(parsed.error);
+                    }
+                } catch (e) {}
+            }
+        }
+      }
+    } catch (e: any) {
+        toast.error("Failed to generate literature review.");
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -38,6 +89,17 @@ export default function LiteratureReviewer() {
         {/* Outline Sidebar */}
         <div className="w-full lg:w-1/4 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
           <h3 className="font-bold flex items-center gap-2 mb-4">
+            <List size={18} /> Review Topic
+          </h3>
+          <input 
+            type="text" 
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleRun()}
+            placeholder="e.g. LLM Agents..." 
+            className="w-full p-3 mb-6 bg-gray-50 dark:bg-[#13151f] border border-gray-200 dark:border-gray-800 rounded-xl text-black dark:text-white outline-none focus:border-black dark:focus:border-white transition-colors"
+          />
+          <h3 className="font-bold flex items-center gap-2 mb-4">
             <List size={18} /> Outline Structure
           </h3>
           <div className="space-y-1">
@@ -53,32 +115,18 @@ export default function LiteratureReviewer() {
 
         {/* Editor/Preview */}
         <div className="w-full lg:w-3/4 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-8 overflow-y-auto">
-          {isRunning ? (
+          {isRunning && !result ? (
             <div className="h-full flex flex-col items-center justify-center opacity-50">
               <BookOpen size={48} className="animate-pulse mb-4" />
-              <p className="font-mono text-sm animate-pulse">Synthesizing 42 papers...</p>
+              <p className="font-mono text-sm animate-pulse">Synthesizing papers...</p>
+            </div>
+          ) : result ? (
+            <div className="prose dark:prose-invert max-w-none font-serif whitespace-pre-wrap">
+                {result}
             </div>
           ) : (
-            <div className="prose dark:prose-invert max-w-none font-serif">
-              <h1 className="text-3xl font-bold mb-6">1. Introduction</h1>
-              <p className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">
-                The rapid evolution of artificial intelligence over the past decade has fundamentally reshaped the landscape of computational research. In particular, the shift towards massive, pre-trained language models has introduced new paradigms for natural language understanding and generation [1].
-              </p>
-              <p className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">
-                However, as these models scale, the underlying infrastructure required to train and deploy them has become increasingly complex. Early research focused primarily on architectural innovations, such as the introduction of the Transformer [2], whereas contemporary literature heavily emphasizes systems-level optimization [3, 4] and efficient fine-tuning methodologies [5].
-              </p>
-              <p className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">
-                This review synthesizes the current state-of-the-art in efficient model deployment, identifying key trends in quantization, pruning, and distributed training. We aim to provide a comprehensive overview of the theoretical foundations that enable these techniques, while critically evaluating their empirical performance across various downstream tasks.
-              </p>
-              
-              <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800">
-                <h3 className="font-bold text-lg mb-4 font-sans">Generated References</h3>
-                <ul className="text-sm text-gray-500 space-y-2 font-sans">
-                  <li>[1] Vaswani et al. (2017). "Attention Is All You Need". NeurIPS.</li>
-                  <li>[2] Devlin et al. (2018). "BERT: Pre-training of Deep Bidirectional Transformers". NAACL.</li>
-                  <li>[3] Dao et al. (2022). "FlashAttention: Fast and Memory-Efficient Exact Attention". NeurIPS.</li>
-                </ul>
-              </div>
+            <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+                Enter a topic and click "Generate Review" to start.
             </div>
           )}
         </div>
