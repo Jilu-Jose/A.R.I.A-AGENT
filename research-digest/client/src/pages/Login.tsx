@@ -25,7 +25,7 @@ export default function Login() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
       await login(data.access_token);
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
     } finally {

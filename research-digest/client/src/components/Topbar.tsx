@@ -63,11 +63,11 @@ export default function Topbar({ onToggleSidebar, sidebarOpen }: TopbarProps) {
   };
 
   return (
-    <header className="h-14 flex items-center gap-3 px-4 bg-white dark:bg-[#0f1117] border-b border-gray-200 dark:border-gray-800 z-10 shrink-0 transition-colors duration-200">
+    <header className="h-14 flex items-center gap-3 pr-4 pl-2 bg-white dark:bg-[#0f1117] border-b border-gray-200 dark:border-gray-800 z-10 shrink-0 transition-colors duration-200">
       {/* Sidebar toggle button */}
       <button
         onClick={onToggleSidebar}
-        className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition-colors shrink-0"
+        className="p-2 -ml-1 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition-colors shrink-0"
         title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
       >
         {sidebarOpen

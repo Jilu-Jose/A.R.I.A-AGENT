@@ -3,7 +3,7 @@ import { api } from '../api';
 import {
   Heart, MessageCircle, Share2, Bookmark, ExternalLink,
   Hash, TrendingUp, Search, ChevronDown, Send, X,
-  Loader2, Compass, AtSign, RefreshCw
+  Loader2, Compass, AtSign, RefreshCw, Star
 } from 'lucide-react';
 
 interface Post {
@@ -30,7 +30,7 @@ interface Topic {
 }
 
 const CATEGORY_OPTIONS = [
-  { value: 'recommended', label: '⭐ Recommended' },
+  { value: 'recommended', label: 'Recommended' },
   { value: 'cs.AI', label: 'Artificial Intelligence' },
   { value: 'cs.LG', label: 'Machine Learning' },
   { value: 'cs.CV', label: 'Computer Vision' },
@@ -516,12 +516,15 @@ const MOCK_TOPICS: Topic[] = [
             <button
               key={opt.value}
               onClick={() => handleCatChange(opt.value)}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+              className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
                 selectedCat === opt.value
                   ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
                   : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
               }`}
             >
+              {opt.value === 'recommended' && (
+                <Star size={14} className={selectedCat === opt.value ? "fill-current" : "text-yellow-500 fill-yellow-500"} />
+              )}
               {opt.label}
             </button>
           ))}

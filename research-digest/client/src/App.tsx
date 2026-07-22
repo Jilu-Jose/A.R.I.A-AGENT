@@ -14,6 +14,7 @@ import Analytics from "./pages/Analytics";
 import Resources from "./pages/Resources";
 import Explore from "./pages/Explore";
 import AgentService from "./pages/AgentService";
+import Landing from "./pages/Landing";
 import Layout from "./components/Layout";
 
 function ProtectedRoute({
@@ -36,8 +37,8 @@ function ProtectedRoute({
         </div>
       </div>
     );
-  if (!user) return <Navigate to="/login" replace />;
-  if (requireAdmin && !user.is_admin) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/" replace />;
+  if (requireAdmin && !user.is_admin) return <Navigate to="/dashboard" replace />;
   if (requireApproved && !user.is_approved && !user.is_admin)
     return <Navigate to="/pending" replace />;
 
@@ -49,6 +50,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
@@ -61,7 +63,7 @@ function App() {
           />
 
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <Layout />

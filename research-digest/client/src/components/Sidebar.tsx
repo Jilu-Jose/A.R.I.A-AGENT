@@ -35,7 +35,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       }`}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-gray-200 dark:border-gray-800 shrink-0 overflow-hidden">
+      <div className="h-14 flex items-center px-4 border-b border-gray-200 dark:border-gray-800 shrink-0 overflow-hidden">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-black dark:bg-white flex items-center justify-center shadow-sm shrink-0">
             <span className="text-white dark:text-black font-bold font-serif text-base">A</span>
@@ -52,52 +52,52 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
         {sectionLabel('Research')}
-        <NavLink to="/" end className={navClass} title={collapsed ? 'Dashboard' : undefined}>
+        <NavLink to="/dashboard" end className={navClass} title={collapsed ? 'Dashboard' : undefined}>
           <LayoutDashboard size={18} className="shrink-0" />
           {!collapsed && <span>Dashboard</span>}
         </NavLink>
-        <NavLink to="/archives" className={navClass} title={collapsed ? 'Archives' : undefined}>
+        <NavLink to="/dashboard/archives" className={navClass} title={collapsed ? 'Archives' : undefined}>
           <Archive size={18} className="shrink-0" />
           {!collapsed && <span>Archives</span>}
         </NavLink>
-        <NavLink to="/library" className={navClass} title={collapsed ? 'Library' : undefined}>
+        <NavLink to="/dashboard/library" className={navClass} title={collapsed ? 'Library' : undefined}>
           <BookOpen size={18} className="shrink-0" />
           {!collapsed && <span>Library</span>}
         </NavLink>
-        <NavLink to="/resources" className={navClass} title={collapsed ? 'Resources' : undefined}>
+        <NavLink to="/dashboard/resources" className={navClass} title={collapsed ? 'Resources' : undefined}>
           <Rss size={18} className="shrink-0" />
           {!collapsed && <span>Resources</span>}
         </NavLink>
-        <NavLink to="/explore" className={navClass} title={collapsed ? 'Explore' : undefined}>
+        <NavLink to="/dashboard/explore" className={navClass} title={collapsed ? 'Explore' : undefined}>
           <Compass size={18} className="shrink-0" />
           {!collapsed && <span>Explore</span>}
         </NavLink>
 
         {sectionLabel('Insights')}
-        <NavLink to="/analytics" className={navClass} title={collapsed ? 'Analytics' : undefined}>
+        <NavLink to="/dashboard/analytics" className={navClass} title={collapsed ? 'Analytics' : undefined}>
           <BarChart2 size={18} className="shrink-0" />
           {!collapsed && <span>Analytics</span>}
         </NavLink>
-        <NavLink to="/chat" className={navClass} title={collapsed ? 'A.R.I.A Chat' : undefined}>
+        <NavLink to="/dashboard/chat" className={navClass} title={collapsed ? 'A.R.I.A Chat' : undefined}>
           <MessageSquare size={18} className="shrink-0" />
           {!collapsed && <span>A.R.I.A Chat</span>}
         </NavLink>
 
         {sectionLabel('Agents')}
         {AGENTS_LIST.map(agent => (
-          <NavLink key={agent.id} to={`/agents/${agent.id}`} className={navClass} title={collapsed ? agent.name : undefined}>
+          <NavLink key={agent.id} to={`/dashboard/agents/${agent.id}`} className={navClass} title={collapsed ? agent.name : undefined}>
             <agent.icon size={18} className="shrink-0" />
             {!collapsed && <span>{agent.name}</span>}
           </NavLink>
         ))}
 
         {sectionLabel('System')}
-        <NavLink to="/settings" className={navClass} title={collapsed ? 'Settings' : undefined}>
+        <NavLink to="/dashboard/settings" className={navClass} title={collapsed ? 'Settings' : undefined}>
           <Settings size={18} className="shrink-0" />
           {!collapsed && <span>Settings</span>}
         </NavLink>
         {user?.is_admin && (
-          <NavLink to="/admin" className={navClass} title={collapsed ? 'Admin Panel' : undefined}>
+          <NavLink to="/dashboard/admin" className={navClass} title={collapsed ? 'Admin Panel' : undefined}>
             <Shield size={18} className="shrink-0" />
             {!collapsed && <span>Admin Panel</span>}
           </NavLink>
