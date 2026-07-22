@@ -98,4 +98,61 @@ def stream_chat(chat_request: ChatRequest, current_user: User = Depends(get_appr
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"
         
+    async def review_generate(topic):
+        from agent.literature_review import stream_literature_review
+        try:
+            async for token in stream_literature_review(topic):
+                yield f"data: {json.dumps({'token': token})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        yield "data: [DONE]\n\n"
+        
+        
+    async def gap_generate(topic):
+        from agent.gap_finder import stream_gap_finder
+        try:
+            async for token in stream_gap_finder(topic):
+                yield f"data: {json.dumps({'token': token})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        yield "data: [DONE]\n\n"
+        
+    if user_message.strip().startswith("/review"):
+        topic = user_message.replace("/review", "").strip()
+        if not topic:
+            topic = "recent AI advancements"
+        return StreamingResponse(review_generate(topic), media_type="text/event-stream")
+        
+    if user_message.strip().startswith("/gap"):
+        topic = user_message.replace("/gap", "").strip()
+        if not topic:
+            topic = "recent AI advancements"
+        return StreamingResponse(gap_generate(topic), media_type="text/event-stream")
+        
+    async def collab_generate(topic):
+        from agent.collaborator_finder import stream_collaborator_finder
+        try:
+            async for token in stream_collaborator_finder(topic):
+                yield f"data: {json.dumps({'token': token})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        yield "data: [DONE]\n\n"
+        
+    if user_message.strip().startswith("/collaborators"):
+        topic = user_message.replace("/collaborators", "").strip()
+        if not topic:
+            topic = "AI researchers"
+        return StreamingResponse(collab_generate(topic), media_type="text/event-stream")
+        
+    # If no explicit slash command, use semantic router
+    from agent.router import route_query
+    route = route_query(user_message)
+    
+    if route == "REVIEW":
+        return StreamingResponse(review_generate(user_message), media_type="text/event-stream")
+    elif route == "GAP":
+        return StreamingResponse(gap_generate(user_message), media_type="text/event-stream")
+    elif route == "COLLABORATORS":
+        return StreamingResponse(collab_generate(user_message), media_type="text/event-stream")
+        
     return StreamingResponse(generate(), media_type="text/event-stream")

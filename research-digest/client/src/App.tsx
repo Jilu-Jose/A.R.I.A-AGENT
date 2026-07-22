@@ -13,6 +13,7 @@ import Chat from "./pages/Chat";
 import Analytics from "./pages/Analytics";
 import Resources from "./pages/Resources";
 import Explore from "./pages/Explore";
+import AgentService from "./pages/AgentService";
 import Layout from "./components/Layout";
 
 function ProtectedRoute({
@@ -75,6 +76,7 @@ function App() {
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />
             <Route path="chat" element={<Chat />} />
+            <Route path="agents/:agentId" element={<AgentService />} />
             <Route
               path="admin"
               element={

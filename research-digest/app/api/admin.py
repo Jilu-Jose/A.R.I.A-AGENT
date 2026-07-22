@@ -121,3 +121,21 @@ def get_user_document(user_id: int, db: Session = Depends(get_db), admin_user: U
         raise HTTPException(status_code=404, detail="No verification document found")
     return FileResponse(user.verification_doc_path, filename=f"verification_{user.username}{os.path.splitext(user.verification_doc_path)[1]}")
 
+@router.get("/system")
+def get_system_info(admin_user: User = Depends(get_admin_user)):
+    agents = [
+        {"id": "citation_network", "name": "Citation Network Agent", "status": "active", "description": "Builds citation graphs for context mapping."},
+        {"id": "cluster", "name": "Clustering Agent", "status": "active", "description": "Groups related papers for digest topics."},
+        {"id": "collaborator_finder", "name": "Collaborator Finder", "status": "active", "description": "Finds potential co-authors based on research overlap."},
+        {"id": "gap_finder", "name": "Gap Finder", "status": "active", "description": "Identifies unexplored areas in literature."},
+        {"id": "literature_review", "name": "Literature Reviewer", "status": "active", "description": "Generates comprehensive literature reviews."},
+        {"id": "paper_analyst", "name": "Paper Analyst", "status": "active", "description": "Extracts key findings and methodology from papers."},
+        {"id": "recommender", "name": "Recommender Agent", "status": "active", "description": "Suggests papers based on user reading history."},
+        {"id": "summarise", "name": "Summarisation Agent", "status": "active", "description": "Summarizes individual papers or abstracts."},
+        {"id": "trend_detector", "name": "Trend Detector", "status": "active", "description": "Detects emerging research topics across feeds."}
+    ]
+    mcp_servers = [
+        {"id": "semantic_scholar", "name": "Semantic Scholar MCP Server", "status": "connected", "type": "Tool/Resource"},
+        {"id": "notion", "name": "Notion MCP Server", "status": "stub", "type": "Export Destination"}
+    ]
+    return {"agents": agents, "mcp_servers": mcp_servers}

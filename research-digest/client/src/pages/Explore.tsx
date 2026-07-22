@@ -30,6 +30,7 @@ interface Topic {
 }
 
 const CATEGORY_OPTIONS = [
+  { value: 'recommended', label: '⭐ Recommended' },
   { value: 'cs.AI', label: 'Artificial Intelligence' },
   { value: 'cs.LG', label: 'Machine Learning' },
   { value: 'cs.CV', label: 'Computer Vision' },
@@ -429,9 +430,24 @@ const MOCK_TOPICS: Topic[] = [
 
   const fetchPosts = async (cat: string, quiet = false) => {
     if (!quiet) setLoading(true); else setRefreshing(true);
+    
+    if (cat === 'recommended') {
+      try {
+        const { data } = await api.get('/explore/recommendations');
+        if (Array.isArray(data)) setPosts(data);
+        else setPosts([]);
+      } catch (err) {
+        setPosts([]);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+      return;
+    }
+
     // Show mock data instantly
     setPosts(MOCK_POSTS);
-    setLoading(false);
+    if (!quiet) setLoading(false);
     // Then try live API in background
     try {
       const { data } = await api.get(`/explore/feed?category=${cat}`);
@@ -441,6 +457,7 @@ const MOCK_TOPICS: Topic[] = [
     } catch (_) {
       // Keep mock data on failure — no error shown to user
     } finally {
+      if (!quiet) setLoading(false);
       setRefreshing(false);
     }
   };

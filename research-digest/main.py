@@ -10,6 +10,7 @@ from app.api.settings import router as settings_router
 from app.api.chat import chat_router
 from app.api.analytics import router as analytics_router
 from app.api.explore import router as explore_router
+from app.api.export import router as export_router
 from dotenv import load_dotenv
 from loguru import logger
 from scheduler import init_scheduler
@@ -38,6 +39,7 @@ app.include_router(settings_router)
 app.include_router(chat_router)
 app.include_router(analytics_router)
 app.include_router(explore_router)
+app.include_router(export_router)
 
 # Mount React static files in production
 CLIENT_DIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "client", "dist")

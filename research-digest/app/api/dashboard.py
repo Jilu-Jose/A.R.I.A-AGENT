@@ -78,7 +78,7 @@ def get_library(db: Session = Depends(get_db), current_user: User = Depends(get_
     return [{"id": p.id, "title": p.title, "url": p.url, "created_at": p.created_at.isoformat()} for p in papers]
 
 @router.post("/search")
-def search_and_pin(query: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
+def search_and_pin(query: str = Form(...), background_tasks: BackgroundTasks = BackgroundTasks(), db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
     query = query.strip()
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
@@ -104,6 +104,11 @@ def search_and_pin(query: str = Form(...), db: Session = Depends(get_db), curren
         new_paper = SavedPaper(user_id=current_user.id, title=title, url=query)
         db.add(new_paper)
         db.commit()
+        db.refresh(new_paper)
+        
+        from agent.paper_analyst import run_paper_analyst
+        background_tasks.add_task(run_paper_analyst, new_paper.id, new_paper.title, new_paper.url)
+        
         return {"message": f"Pinned: {title[:30]}..."}
     else:
         try:
@@ -122,6 +127,11 @@ def search_and_pin(query: str = Form(...), db: Session = Depends(get_db), curren
                     new_paper = SavedPaper(user_id=current_user.id, title=title, url=url)
                     db.add(new_paper)
                     db.commit()
+                    db.refresh(new_paper)
+                    
+                    from agent.paper_analyst import run_paper_analyst
+                    background_tasks.add_task(run_paper_analyst, new_paper.id, new_paper.title, new_paper.url)
+                    
                     return {"message": f"Pinned: {title[:30]}..."}
                 else:
                     raise HTTPException(status_code=404, detail="No papers found")
@@ -138,3 +148,17 @@ def delete_paper(paper_id: int, db: Session = Depends(get_db), current_user: Use
     db.delete(paper)
     db.commit()
     return {"message": "Paper removed"}
+
+@router.get("/citation-map")
+def get_citation_map(db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
+    papers = db.query(SavedPaper).filter_by(user_id=current_user.id).all()
+    if not papers:
+        return {"nodes": [], "links": []}
+        
+    from agent.citation_network import build_citation_map
+    try:
+        graph_data = build_citation_map(papers)
+        return graph_data
+    except Exception as e:
+        logger.error(f"Failed to build citation map: {e}")
+        return {"nodes": [], "links": []}

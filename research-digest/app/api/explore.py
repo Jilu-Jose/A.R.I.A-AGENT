@@ -124,7 +124,53 @@ async def get_explore_feed(
 @router.get("/trending-topics")
 async def get_trending_topics(current_user: User = Depends(get_approved_user)):
     """Returns trending topic metadata for the sidebar"""
+    trending_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data", "trending_topics.json")
+    try:
+        if os.path.exists(trending_file):
+            import json
+            with open(trending_file, "r") as f:
+                topics = json.load(f)
+            if isinstance(topics, list) and len(topics) > 0:
+                return topics
+    except Exception as e:
+        import loguru
+        loguru.logger.error(f"Failed to read trending topics: {e}")
+        
     return [
         {"tag": tag, "label": label, "category": cat}
         for cat, (label, tag) in ARXIV_CATEGORIES.items()
     ]
+
+@router.get("/recommendations")
+async def get_recommendations(current_user: User = Depends(get_approved_user)):
+    """Fetch personalized paper recommendations via LangGraph agent."""
+    try:
+        from agent.recommender import get_paper_recommendations
+        papers = await get_paper_recommendations(current_user.id)
+        
+        # Add basic mapping so frontend explore feed can parse it
+        mapped_papers = []
+        for p in papers:
+            # handle Semantic Scholar specific keys
+            mapped_papers.append({
+                "id": p.get("paperId", "unknown"),
+                "title": p.get("title", "Untitled"),
+                "summary": p.get("abstract", "")[:280] + ("..." if p.get("abstract") else ""),
+                "full_summary": p.get("abstract", ""),
+                "authors": [a.get("name", "") for a in p.get("authors", [])][:3],
+                "poster_name": "Semantic Scholar Agent",
+                "poster_handle": "@aria_agent",
+                "published": str(p.get("year", "")),
+                "link": p.get("url", ""),
+                "hashtags": ["Recommendation"],
+                "category": "Recommended",
+                "image_url": TOPIC_IMAGES["default"],
+                "likes": p.get("citationCount", 0),
+                "comments": 0
+            })
+        return mapped_papers
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return []
+

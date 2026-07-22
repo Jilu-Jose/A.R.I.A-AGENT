@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { AGENTS_LIST } from '../utils/agents';
 import {
   LayoutDashboard, Archive, BookOpen, Settings, LogOut,
   MessageSquare, Shield, BarChart2, Rss, Compass
@@ -81,6 +82,14 @@ export default function Sidebar({ collapsed }: SidebarProps) {
           <MessageSquare size={18} className="shrink-0" />
           {!collapsed && <span>A.R.I.A Chat</span>}
         </NavLink>
+
+        {sectionLabel('Agents')}
+        {AGENTS_LIST.map(agent => (
+          <NavLink key={agent.id} to={`/agents/${agent.id}`} className={navClass} title={collapsed ? agent.name : undefined}>
+            <agent.icon size={18} className="shrink-0" />
+            {!collapsed && <span>{agent.name}</span>}
+          </NavLink>
+        ))}
 
         {sectionLabel('System')}
         <NavLink to="/settings" className={navClass} title={collapsed ? 'Settings' : undefined}>

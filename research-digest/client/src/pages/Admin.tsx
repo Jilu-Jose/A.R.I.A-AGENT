@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
-import { Shield, CheckCircle, XCircle, DollarSign, ChevronDown, ChevronUp, FileText, User, ExternalLink } from 'lucide-react';
+import { Shield, CheckCircle, XCircle, DollarSign, ChevronDown, ChevronUp, FileText, User, ExternalLink, Server, Cpu } from 'lucide-react';
 
 interface AdminUser {
   id: number;
@@ -23,6 +23,7 @@ const TIER_LABELS: Record<number, string> = {
 
 export default function Admin() {
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [systemInfo, setSystemInfo] = useState<{agents: any[], mcp_servers: any[]} | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -32,13 +33,20 @@ export default function Admin() {
       setUsers(data);
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchSystemInfo = async () => {
+    try {
+      const { data } = await api.get('/admin/system');
+      setSystemInfo(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    Promise.all([fetchUsers(), fetchSystemInfo()]).finally(() => setLoading(false));
   }, []);
 
   const approveUser = async (id: number) => {
@@ -248,6 +256,53 @@ export default function Admin() {
           </table>
         </div>
       </div>
+
+      {/* System Status Section */}
+      {systemInfo && (
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Agents */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Cpu size={24} className="text-gray-400" />
+              <h2 className="text-xl font-bold text-black dark:text-white">Active Agents</h2>
+            </div>
+            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {systemInfo.agents.map((agent: any) => (
+                <div key={agent.id} className="flex items-start justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-800/20">
+                  <div>
+                    <div className="font-semibold text-sm text-black dark:text-white">{agent.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{agent.description}</div>
+                  </div>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-200 text-black dark:bg-gray-800 dark:text-white shrink-0">
+                    {agent.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* MCP Servers */}
+          <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Server size={24} className="text-gray-400" />
+              <h2 className="text-xl font-bold text-black dark:text-white">MCP Connectors</h2>
+            </div>
+            <div className="space-y-4">
+              {systemInfo.mcp_servers.map((mcp: any) => (
+                <div key={mcp.id} className="flex items-start justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-800/20">
+                  <div>
+                    <div className="font-semibold text-sm text-black dark:text-white">{mcp.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{mcp.type}</div>
+                  </div>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-200 text-black dark:bg-gray-800 dark:text-white shrink-0">
+                    {mcp.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
