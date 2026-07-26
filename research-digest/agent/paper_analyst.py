@@ -89,12 +89,27 @@ async def async_run_paper_analyst(paper_id: int, title: str, url: str):
             
         analysis = json.loads(content.strip())
         
-        out_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "analyses", f"{paper_id}.json")
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-        with open(out_path, "w") as f:
-            json.dump(analysis, f, indent=2)
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        out_path = os.path.join(base_dir, "data", "analyses", f"{paper_id}.json")
+        
+        try:
+            await call_mcp_tool(
+                "npx", 
+                ["-y", "@modelcontextprotocol/server-filesystem", base_dir], 
+                "write_file", 
+                {
+                    "path": out_path,
+                    "content": json.dumps(analysis, indent=2)
+                }
+            )
+            loguru.logger.info(f"Analysis saved via Filesystem MCP for paper {paper_id}")
+        except Exception as e:
+            loguru.logger.warning(f"Filesystem MCP failed: {e}. Falling back to local write.")
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+            with open(out_path, "w") as f:
+                json.dump(analysis, f, indent=2)
+            loguru.logger.info(f"Analysis saved locally for paper {paper_id}")
             
-        loguru.logger.info(f"Analysis saved for paper {paper_id}")
         return analysis
     except Exception as e:
         loguru.logger.error(f"LLM analysis failed: {e}")

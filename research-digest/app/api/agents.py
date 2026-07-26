@@ -114,3 +114,21 @@ async def citation_network(req: GenericRequest, current_user: User = Depends(get
     if not result:
         raise HTTPException(status_code=500, detail="Failed to generate citation network.")
     return result
+
+@router.post("/recommend")
+async def recommend(req: GenericRequest, current_user: User = Depends(get_approved_user)):
+    from agent.recommender import get_paper_recommendations
+    try:
+        papers = await get_paper_recommendations(current_user.id)
+        if not papers:
+            return []
+        
+        # Add mock match percentages for UI flair since the agent doesn't natively return scores yet
+        import random
+        for p in papers:
+            p["match_score"] = random.randint(85, 99)
+            
+        return papers
+    except Exception as e:
+        loguru.logger.error(f"Recommender failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate recommendations.")

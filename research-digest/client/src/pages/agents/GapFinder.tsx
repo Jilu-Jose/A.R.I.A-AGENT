@@ -63,7 +63,7 @@ export default function GapFinder() {
         <div>
           <h2 className="text-2xl font-bold font-serif text-black dark:text-white flex items-center gap-2">
             <Search className="text-gray-500" />
-            Gap Finder
+            V.O.I.D
           </h2>
           <p className="text-gray-500 text-sm mt-1">Identify unexplored areas and novel research directions.</p>
         </div>

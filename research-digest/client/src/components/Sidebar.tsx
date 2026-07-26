@@ -18,7 +18,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 overflow-hidden whitespace-nowrap ${
       isActive
         ? 'bg-black dark:bg-white text-white dark:text-black shadow-sm'
-        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/70 hover:text-black dark:hover:text-white'
+        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/70'
     }`;
 
   const sectionLabel = (text: string) =>

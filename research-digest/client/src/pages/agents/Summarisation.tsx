@@ -36,7 +36,7 @@ export default function Summarisation() {
         <div>
           <h2 className="text-2xl font-bold font-serif text-black dark:text-white flex items-center gap-2">
             <FileSearch className="text-gray-500" />
-            Summarisation Agent
+            S.U.M.M.I.T
           </h2>
           <p className="text-gray-500 text-sm mt-1">Distill lengthy papers and abstracts into concise, actionable summaries.</p>
         </div>

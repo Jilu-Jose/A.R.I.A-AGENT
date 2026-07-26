@@ -1,12 +1,35 @@
 import React, { useState } from 'react';
-import { Sparkles, RefreshCw, Bookmark, SlidersHorizontal } from 'lucide-react';
+import { Sparkles, RefreshCw, Bookmark, SlidersHorizontal, ExternalLink } from 'lucide-react';
+import { api } from '../../api';
+import toast from 'react-hot-toast';
 
 export default function Recommender() {
   const [isRunning, setIsRunning] = useState(false);
+  const [papers, setPapers] = useState<any[]>([]);
 
-  const handleRun = () => {
+  const handleRun = async () => {
     setIsRunning(true);
-    setTimeout(() => setIsRunning(false), 2000);
+    setPapers([]);
+    try {
+      const res = await api.post("/agents/recommend", { query: "recommendations" });
+      setPapers(res.data || []);
+      if (res.data && res.data.length === 0) {
+        toast.error("No recommendations found. Save more papers to your library!");
+      }
+    } catch (e) {
+      // api interceptor handles toast
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleSave = async (paper: any) => {
+    try {
+      await api.post("/dashboard/paper", { title: paper.title, url: paper.url });
+      toast.success("Saved to Library!");
+    } catch (e) {
+      toast.error("Failed to save paper.");
+    }
   };
 
   return (
@@ -15,7 +38,7 @@ export default function Recommender() {
         <div>
           <h2 className="text-2xl font-bold font-serif text-black dark:text-white flex items-center gap-2">
             <Sparkles className="text-gray-500" />
-            Recommender Agent
+            O.R.A.C.L.E
           </h2>
           <p className="text-gray-500 text-sm mt-1">Discover new papers tailored to your reading history.</p>
         </div>
@@ -59,40 +82,39 @@ export default function Recommender() {
              <Sparkles size={48} className="animate-pulse mb-4" />
              <p className="font-mono text-sm animate-pulse">Computing collaborative filtering matrices...</p>
           </div>
+        ) : papers.length > 0 ? (
+          papers.map((paper: any, idx: number) => (
+            <div key={idx} className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-6 flex gap-6 hover:border-black dark:hover:border-white transition-colors">
+               <div className="flex-1">
+                 <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+                   {paper.url ? (
+                     <a href={paper.url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                       {paper.title} <ExternalLink size={14} className="text-gray-400" />
+                     </a>
+                   ) : (
+                     paper.title
+                   )}
+                 </h3>
+                 <p className="text-sm text-gray-500 mb-4">
+                   {paper.authors ? paper.authors.map((a: any) => a.name).join(", ") : "Unknown"} 
+                   {paper.year ? ` (${paper.year})` : ""}
+                 </p>
+                 <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                   {paper.abstract || "No abstract available."}
+                 </p>
+               </div>
+               <div className="flex flex-col items-center justify-between shrink-0">
+                 <span className="text-xs font-bold px-2 py-1 bg-black dark:bg-white text-white dark:text-black rounded">{paper.match_score || 95}% Match</span>
+                 <button onClick={() => handleSave(paper)} className="p-2 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800" title="Save to Library">
+                   <Bookmark size={20} />
+                 </button>
+               </div>
+            </div>
+          ))
         ) : (
-          <>
-            <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-6 flex gap-6 hover:border-black dark:hover:border-white transition-colors">
-               <div className="flex-1">
-                 <h3 className="font-bold text-lg mb-2">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</h3>
-                 <p className="text-sm text-gray-500 mb-4">Rafailov et al. (2023)</p>
-                 <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-                   While reinforcement learning from human feedback (RLHF) has become the standard for aligning large language models, we propose Direct Preference Optimization (DPO), which solves the same task without reinforcement learning.
-                 </p>
-               </div>
-               <div className="flex flex-col items-center justify-between">
-                 <span className="text-xs font-bold px-2 py-1 bg-black dark:bg-white text-white dark:text-black rounded">98% Match</span>
-                 <button className="p-2 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800" title="Save to Library">
-                   <Bookmark size={20} />
-                 </button>
-               </div>
-            </div>
-
-            <div className="bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-gray-800 p-6 flex gap-6 hover:border-black dark:hover:border-white transition-colors">
-               <div className="flex-1">
-                 <h3 className="font-bold text-lg mb-2">Q-LoRA: Efficient Finetuning of Quantized LLMs</h3>
-                 <p className="text-sm text-gray-500 mb-4">Dettmers et al. (2023)</p>
-                 <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-                   We present QLoRA, an efficient finetuning approach that reduces memory usage enough to finetune a 65B parameter model on a single 48GB GPU while preserving full 16-bit finetuning task performance.
-                 </p>
-               </div>
-               <div className="flex flex-col items-center justify-between">
-                 <span className="text-xs font-bold px-2 py-1 bg-black dark:bg-white text-white dark:text-black rounded">92% Match</span>
-                 <button className="p-2 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800" title="Save to Library">
-                   <Bookmark size={20} />
-                 </button>
-               </div>
-            </div>
-          </>
+          <div className="h-48 flex flex-col items-center justify-center text-gray-400 text-sm">
+            Click "Refresh Feed" to get personalized recommendations based on your library.
+          </div>
         )}
       </div>
     </div>

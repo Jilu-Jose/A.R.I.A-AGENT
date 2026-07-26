@@ -27,7 +27,7 @@ export default function CitationNetwork() {
         <div>
           <h2 className="text-2xl font-bold font-serif text-black dark:text-white flex items-center gap-2">
             <Network className="text-gray-500" />
-            Citation Network Agent
+            C.H.A.I.N
           </h2>
           <p className="text-gray-500 text-sm mt-1">Generate and analyze citation graphs for context mapping.</p>
         </div>

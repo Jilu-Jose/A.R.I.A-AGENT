@@ -6,7 +6,7 @@ import {
   Loader2, Compass, AtSign, RefreshCw, Star, ArrowLeft, Home
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import toast from 'react-hot-toast';
 interface Post {
   id: string;
   title: string;
@@ -284,151 +284,7 @@ export default function Explore() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
-const MOCK_POSTS: Post[] = [
-  {
-    id: "mock_1",
-    title: "Gemini 2.0: Multimodal Reasoning at Scale with Chain-of-Thought Verification",
-    summary: "We introduce Gemini 2.0, a family of multimodal models achieving state-of-the-art performance across text, vision, and audio benchmarks. Our key innovation is a multi-stage chain-of-thought verifier that reduces hallucination by 47% compared to prior work, enabling reliable long-horizon reasoning tasks.",
-    full_summary: "We introduce Gemini 2.0, a family of multimodal models achieving state-of-the-art performance across text, vision, and audio benchmarks. Our key innovation is a multi-stage chain-of-thought verifier that reduces hallucination by 47% compared to prior work, enabling reliable long-horizon reasoning tasks. Gemini 2.0 achieves 91.4% on MMMU, surpassing human expert performance on 12 of 20 STEM domains.",
-    authors: ["Sundar Pichai", "Demis Hassabis", "Oriol Vinyals"],
-    poster_name: "Demis Hassabis",
-    poster_handle: "@hassabis",
-    published: new Date(Date.now() - 1 * 86400000).toISOString(),
-    link: "https://arxiv.org/abs/2312.11805",
-    hashtags: ["AI", "LLM", "Multimodal", "ReasoningModels"],
-    category: "Artificial Intelligence",
-    image_url: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=700&q=80",
-    likes: 4821,
-    comments: 312,
-  },
-  {
-    id: "mock_2",
-    title: "Diffusion Transformers for High-Fidelity 4K Video Generation",
-    summary: "DiT-Video scales diffusion transformers to 4K video synthesis using spatiotemporal attention factorization. We demonstrate photorealistic 30-second video clips with consistent motion dynamics, achieving a new FVD score of 18.3 on UCF-101 — a 62% improvement over previous SOTA.",
-    full_summary: "DiT-Video scales diffusion transformers to 4K video synthesis using spatiotemporal attention factorization. We demonstrate photorealistic 30-second video clips with consistent motion dynamics, achieving a new FVD score of 18.3 on UCF-101 — a 62% improvement over previous SOTA. Our model runs inference in under 8 seconds on a single H100 GPU.",
-    authors: ["William Peebles", "Saining Xie", "Jun-Yan Zhu"],
-    poster_name: "William Peebles",
-    poster_handle: "@wpeebles",
-    published: new Date(Date.now() - 2 * 86400000).toISOString(),
-    link: "https://arxiv.org/abs/2212.09748",
-    hashtags: ["DiffusionModels", "VideoGeneration", "DiT", "ComputerVision"],
-    category: "Computer Vision",
-    image_url: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=700&q=80",
-    likes: 3104,
-    comments: 198,
-  },
-  {
-    id: "mock_3",
-    title: "NeuroFlux: Real-Time Brain-Computer Interface Using Spiking Neural Networks",
-    summary: "We present NeuroFlux, a low-latency BCI decoder based on spiking neural networks that achieves 97.3% motor intention classification with only 2.1ms latency. Our neuromorphic approach reduces power consumption by 89% compared to conventional deep learning decoders, enabling fully implantable devices.",
-    full_summary: "We present NeuroFlux, a low-latency BCI decoder based on spiking neural networks that achieves 97.3% motor intention classification with only 2.1ms latency. Our neuromorphic approach reduces power consumption by 89% compared to conventional deep learning decoders, enabling fully implantable devices. We validate on N=24 human participants across three clinical sites.",
-    authors: ["Lea Wehbe", "Frank Guenther", "Krishna Shenoy"],
-    poster_name: "Krishna Shenoy",
-    poster_handle: "@kshenoy",
-    published: new Date(Date.now() - 3 * 86400000).toISOString(),
-    link: "https://arxiv.org/abs/2310.00012",
-    hashtags: ["BCI", "Neuroscience", "SNN", "NeuralInterfaces"],
-    category: "Neural Computing",
-    image_url: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=700&q=80",
-    likes: 2673,
-    comments: 144,
-  },
-  {
-    id: "mock_4",
-    title: "RoboFusion: Foundation Models for Dexterous Manipulation in Unstructured Environments",
-    summary: "RoboFusion integrates vision-language-action models with tactile feedback to enable dexterous manipulation of novel objects with zero demonstrations. Our robot achieves 83% success on YCB-Video grasping benchmarks in cluttered scenes, outperforming humans on thin object grasping tasks.",
-    full_summary: "RoboFusion integrates vision-language-action models with tactile feedback to enable dexterous manipulation of novel objects with zero demonstrations. Our robot achieves 83% success on YCB-Video grasping benchmarks in cluttered scenes, outperforming humans on thin object grasping tasks. We deploy on a 7-DoF arm with a custom tactile fingertip array.",
-    authors: ["Chelsea Finn", "Pieter Abbeel", "Sergey Levine"],
-    poster_name: "Chelsea Finn",
-    poster_handle: "@chelseafinn",
-    published: new Date(Date.now() - 4 * 86400000).toISOString(),
-    link: "https://arxiv.org/abs/2309.10020",
-    hashtags: ["Robotics", "FoundationModels", "Manipulation", "VLA"],
-    category: "Robotics",
-    image_url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=700&q=80",
-    likes: 1892,
-    comments: 87,
-  },
-  {
-    id: "mock_5",
-    title: "Protein Structure Prediction Beyond AlphaFold: Dynamics-Aware Folding with TemporalESM",
-    summary: "TemporalESM extends protein language models to predict full conformational ensembles rather than static structures. By training on molecular dynamics trajectories, our model captures biologically relevant flexibility, achieving 0.91 GDT-TS on CASP15 targets and correctly predicting allosteric site openings.",
-    full_summary: "TemporalESM extends protein language models to predict full conformational ensembles rather than static structures. By training on 2.1 billion MD frames from 48,000 proteins, our model captures biologically relevant flexibility with unprecedented fidelity. We achieve 0.91 GDT-TS on CASP15 targets and correctly predicting allosteric site openings critical for drug discovery.",
-    authors: ["John Jumper", "Richard Evans", "Kathryn Tunyasuvunakool"],
-    poster_name: "John Jumper",
-    poster_handle: "@johnjumper",
-    published: new Date(Date.now() - 5 * 86400000).toISOString(),
-    link: "https://arxiv.org/abs/2307.12345",
-    hashtags: ["ProteinFolding", "Biology", "AlphaFold", "DrugDiscovery"],
-    category: "Computational Biology",
-    image_url: "https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?w=700&q=80",
-    likes: 5431,
-    comments: 421,
-  },
-  {
-    id: "mock_6",
-    title: "Quantum Error Correction at Scale: 1000-Qubit Logical Qubits with Surface Codes",
-    summary: "We demonstrate a 1000-physical-qubit system achieving a logical qubit error rate of 10⁻⁹ per gate cycle using surface codes with real-time classical decoding. This represents the first experimental realization of quantum error correction below the fault-tolerance threshold for universal quantum computation.",
-    full_summary: "We demonstrate a 1000-physical-qubit system achieving a logical qubit error rate of 10⁻⁹ per gate cycle using surface codes with real-time classical decoding. This represents the first experimental realization of quantum error correction below the fault-tolerance threshold for universal quantum computation. Our results pave the way for practical quantum advantage in chemistry simulation.",
-    authors: ["John Martinis", "Hartmut Neven", "Sergio Boixo"],
-    poster_name: "Hartmut Neven",
-    poster_handle: "@hneven",
-    published: new Date(Date.now() - 6 * 86400000).toISOString(),
-    link: "https://arxiv.org/abs/2308.99001",
-    hashtags: ["QuantumComputing", "ErrorCorrection", "Physics", "Qubits"],
-    category: "Quantum Physics",
-    image_url: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=700&q=80",
-    likes: 6012,
-    comments: 503,
-  },
-  {
-    id: "mock_7",
-    title: "MambaMed: State Space Models for Long-Context Medical Record Analysis",
-    summary: "MambaMed applies selective state space models to electronic health records, enabling efficient processing of 500K-token patient histories. Our model predicts 30-day readmission with AUC 0.94 and reduces inference cost by 85% versus transformer baselines, making real-time clinical decision support feasible.",
-    full_summary: "MambaMed applies selective state space models to electronic health records, enabling efficient processing of 500K-token patient histories without quadratic attention overhead. Our model predicts 30-day readmission with AUC 0.94 and reduces inference cost by 85% versus transformer baselines, making real-time clinical decision support feasible in resource-constrained hospital settings.",
-    authors: ["Albert Gu", "Tri Dao", "Karan Goel"],
-    poster_name: "Tri Dao",
-    poster_handle: "@tridao",
-    published: new Date(Date.now() - 7 * 86400000).toISOString(),
-    link: "https://arxiv.org/abs/2312.00752",
-    hashtags: ["Mamba", "Healthcare", "EHR", "SSM", "ML"],
-    category: "Machine Learning",
-    image_url: "https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=700&q=80",
-    likes: 2334,
-    comments: 156,
-  },
-  {
-    id: "mock_8",
-    title: "AutoSat-6B: Autonomous Satellite Tasking with Reinforcement Learning from Mission Feedback",
-    summary: "We train a 6B-parameter model to autonomously schedule Earth observation satellites using RLHF-style feedback from mission operators. AutoSat-6B increases successful imaging attempts by 34% and reduces operator workload by 71%, demonstrating that LLMs can manage complex multi-constraint scheduling problems.",
-    full_summary: "We train a 6B-parameter model to autonomously schedule Earth observation satellites using RLHF-style feedback from mission operators. AutoSat-6B increases successful imaging attempts by 34% and reduces operator workload by 71%, demonstrating that LLMs can manage complex multi-constraint scheduling problems in real-world space operations.",
-    authors: ["Yann LeCun", "Ilya Sutskever", "Andrej Karpathy"],
-    poster_name: "Andrej Karpathy",
-    poster_handle: "@karpathy",
-    published: new Date(Date.now() - 1 * 86400000).toISOString(),
-    link: "https://arxiv.org/abs/2311.08842",
-    hashtags: ["Space", "RL", "Satellites", "Autonomy", "AI"],
-    category: "Artificial Intelligence",
-    image_url: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=700&q=80",
-    likes: 3891,
-    comments: 267,
-  },
-];
-
-const MOCK_TOPICS: Topic[] = [
-  { tag: "AI", label: "Artificial Intelligence", category: "cs.AI" },
-  { tag: "ML", label: "Machine Learning", category: "cs.LG" },
-  { tag: "CV", label: "Computer Vision", category: "cs.CV" },
-  { tag: "NLP", label: "Natural Language Processing", category: "cs.CL" },
-  { tag: "Robotics", label: "Robotics", category: "cs.RO" },
-  { tag: "Security", label: "Cryptography & Security", category: "cs.CR" },
-  { tag: "Physics", label: "Physics", category: "physics" },
-  { tag: "Math", label: "Mathematics", category: "math" },
-  { tag: "Biology", label: "Quantitative Biology", category: "q-bio" },
-  { tag: "Engineering", label: "Electrical Engineering", category: "eess" },
-  { tag: "NeuralNets", label: "Neural Computing", category: "cs.NE" },
-  { tag: "StatML", label: "Statistics & ML", category: "stat.ML" },
-];
+  // Mock data removed to rely fully on live API
 
   const fetchPosts = async (cat: string, quiet = false) => {
     if (!quiet) setLoading(true); else setRefreshing(true);
@@ -447,17 +303,16 @@ const MOCK_TOPICS: Topic[] = [
       return;
     }
 
-    // Show mock data instantly
-    setPosts(MOCK_POSTS);
-    if (!quiet) setLoading(false);
-    // Then try live API in background
     try {
       const { data } = await api.get(`/explore/feed?category=${cat}`);
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setPosts(data);
+      } else {
+        setPosts([]);
       }
-    } catch (_) {
-      // Keep mock data on failure — no error shown to user
+    } catch (err) {
+      setPosts([]);
+      toast.error("Failed to fetch feed.");
     } finally {
       if (!quiet) setLoading(false);
       setRefreshing(false);
@@ -465,9 +320,6 @@ const MOCK_TOPICS: Topic[] = [
   };
 
   useEffect(() => {
-    // Seed with mock topics immediately
-    setTopics(MOCK_TOPICS);
-    // Try live API
     api.get('/explore/trending-topics').then(({ data }) => {
       if (Array.isArray(data) && data.length > 0) setTopics(data);
     }).catch(() => {});

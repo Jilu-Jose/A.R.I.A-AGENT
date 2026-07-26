@@ -15,20 +15,22 @@ class CollabState(TypedDict):
 async def collab_search_github_node(state: CollabState):
     topic = state["topic"]
     
-    # We can try to use a Github MCP or Brave Search to find repos
-    if not os.environ.get("BRAVE_API_KEY"):
-        return {"github_context": "Brave API key not set."}
+    github_token = os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN")
+    if not github_token:
+        return {"github_context": "GITHUB_PERSONAL_ACCESS_TOKEN not set."}
         
     try:
+        # Using GitHub MCP search_repositories
         result = await call_mcp_tool(
             "npx", 
-            ["-y", "@modelcontextprotocol/server-brave-search"], 
-            "brave_web_search", 
-            {"query": f"site:github.com {topic} repository code", "count": 3}
+            ["-y", "@modelcontextprotocol/server-github"], 
+            "search_repositories", 
+            {"query": f"{topic}", "page": 1, "perPage": 3},
+            env={"GITHUB_PERSONAL_ACCESS_TOKEN": github_token}
         )
-        return {"github_context": result.content[0].text if result.content else "No results found."}
+        return {"github_context": result.content[0].text if result.content else "No repositories found."}
     except Exception as e:
-        return {"github_context": f"Search error: {e}"}
+        return {"github_context": f"GitHub search error: {e}"}
 
 async def collab_search_papers_node(state: CollabState):
     topic = state["topic"]

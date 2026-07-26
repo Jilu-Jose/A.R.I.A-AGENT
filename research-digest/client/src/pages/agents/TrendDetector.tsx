@@ -25,7 +25,7 @@ export default function TrendDetector() {
         <div>
           <h2 className="text-2xl font-bold font-serif text-black dark:text-white flex items-center gap-2">
             <TrendingUp className="text-gray-500" />
-            Trend Detector
+            T.R.E.N.D
           </h2>
           <p className="text-gray-500 text-sm mt-1">Identify exploding research topics and dying fads over time.</p>
         </div>

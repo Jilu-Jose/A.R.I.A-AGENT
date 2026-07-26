@@ -63,7 +63,7 @@ export default function CollaboratorFinder() {
         <div>
           <h2 className="text-2xl font-bold font-serif text-black dark:text-white flex items-center gap-2">
             <Users className="text-gray-500" />
-            Collaborator Finder
+            C.O.R.E
           </h2>
           <p className="text-gray-500 text-sm mt-1">Discover potential co-authors based on research overlap.</p>
         </div>

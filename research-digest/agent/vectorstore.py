@@ -29,15 +29,39 @@ def _get_embeddings():
 def _get_index_path(user_id):
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_dir, "data", f"faiss_{user_id}")
+    
+def _get_postgres_connection():
+    db_url = os.environ.get("DATABASE_URL", "")
+    if db_url.startswith("postgres"):
+        return db_url
+    return None
 
 def build_index(documents, user_id):
     if not documents:
         logger.info(f"No documents to index for user {user_id}")
         return []
 
-    index_path = _get_index_path(user_id)
     embeddings = _get_embeddings()
+    pg_url = _get_postgres_connection()
     
+    if pg_url:
+        from langchain_postgres.vectorstores import PGVector
+        
+        vectorstore = PGVector(
+            connection=pg_url,
+            embeddings=embeddings,
+            collection_name=f"user_{user_id}",
+            use_jsonb=True
+        )
+        
+        unique_docs = list(documents)
+        if unique_docs:
+            vectorstore.add_documents(unique_docs)
+            logger.info(f"Added {len(unique_docs)} documents to PGVector for user {user_id}")
+        return unique_docs
+    
+    # Fallback to FAISS
+    index_path = _get_index_path(user_id)
     existing_vectorstore = None
     if os.path.exists(os.path.join(index_path, "index.faiss")):
         try:
@@ -90,12 +114,24 @@ def get_embeddings_matrix(documents):
 
 def get_retriever(user_id):
     """Returns a LangChain retriever for the user's vector store, or None if it doesn't exist."""
+    embeddings = _get_embeddings()
+    pg_url = _get_postgres_connection()
+    
+    if pg_url:
+        from langchain_postgres.vectorstores import PGVector
+        vectorstore = PGVector(
+            connection=pg_url,
+            embeddings=embeddings,
+            collection_name=f"user_{user_id}",
+            use_jsonb=True
+        )
+        return vectorstore.as_retriever(search_kwargs={"k": 4})
+        
     index_path = _get_index_path(user_id)
     if not os.path.exists(os.path.join(index_path, "index.faiss")):
         return None
     
     try:
-        embeddings = _get_embeddings()
         vectorstore = FAISS.load_local(
             index_path, 
             embeddings, 

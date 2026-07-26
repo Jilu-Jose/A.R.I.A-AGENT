@@ -27,7 +27,7 @@ export default function Clustering() {
         <div>
           <h2 className="text-2xl font-bold font-serif text-black dark:text-white flex items-center gap-2">
             <FolderTree className="text-gray-500" />
-            Clustering Agent
+            C.L.U.S.T.E.R
           </h2>
           <p className="text-gray-500 text-sm mt-1">Group related papers dynamically based on semantic similarity.</p>
         </div>
