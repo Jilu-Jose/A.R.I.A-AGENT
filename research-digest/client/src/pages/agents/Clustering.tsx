@@ -117,7 +117,7 @@ export default function Clustering() {
                      </div>
                      <p className="text-sm text-gray-500 mb-4 line-clamp-2">Documents related to {cluster.topic_name}</p>
                      <div className="flex -space-x-2">
-                       {cluster.documents?.slice(0, 4).map((_, j) => (
+                       {cluster.documents?.slice(0, 4).map((_: any, j: number) => (
                           <div key={j} className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1a1d27] bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold">P{j+1}</div>
                        ))}
                        {cluster.documents?.length > 4 && (
