@@ -135,7 +135,15 @@ def get_system_info(admin_user: User = Depends(get_admin_user)):
         {"id": "trend_detector", "name": "Trend Detector", "status": "active", "description": "Detects emerging research topics across feeds."}
     ]
     mcp_servers = [
-        {"id": "semantic_scholar", "name": "Semantic Scholar MCP Server", "status": "connected", "type": "Tool/Resource"},
-        {"id": "notion", "name": "Notion MCP Server", "status": "stub", "type": "Export Destination"}
+        {"id": "semantic_scholar", "name": "Semantic Scholar MCP Server", "status": "connected", "type": "Data Source"},
+        {"id": "brave_search", "name": "Brave Search MCP", "status": "stub", "type": "Search Provider"},
+        {"id": "memory", "name": "Memory MCP", "status": "stub", "type": "Knowledge Graph"},
+        {"id": "filesystem", "name": "Filesystem MCP", "status": "stub", "type": "Storage"},
+        {"id": "postgres", "name": "PostgreSQL MCP", "status": "stub", "type": "Database"},
+        {"id": "notion", "name": "Notion MCP Server", "status": "stub", "type": "Export Destination"},
+        {"id": "zotero", "name": "Zotero MCP", "status": "stub", "type": "Reference Manager"},
+        {"id": "github", "name": "GitHub MCP", "status": "stub", "type": "Integration"},
+        {"id": "slack_discord", "name": "Slack/Discord MCP", "status": "stub", "type": "Communication"},
+        {"id": "google_calendar", "name": "Google Calendar MCP", "status": "stub", "type": "Productivity"}
     ]
     return {"agents": agents, "mcp_servers": mcp_servers}

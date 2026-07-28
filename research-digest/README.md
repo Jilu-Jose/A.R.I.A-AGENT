@@ -1,5 +1,7 @@
 # A.R.I.A Research Digest
 
+**Live Demo:** [https://a-r-i-a-agent-kappa.vercel.app/](https://a-r-i-a-agent-kappa.vercel.app/)
+
 A.R.I.A (Autonomous Research Intelligence Assistant) is a modern web application that automatically curates, summarizes, and delivers personalized research digests. It features an integrated RAG-based AI chat assistant to help users interact with and understand research papers.
 
 ## Architecture

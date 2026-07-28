@@ -298,7 +298,7 @@ export default function Admin() {
               <Server size={24} className="text-gray-400" />
               <h2 className="text-xl font-bold text-black dark:text-white">MCP Connectors</h2>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {systemInfo.mcp_servers.map((mcp: any) => (
                 <div key={mcp.id} className="flex items-start justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-800/20">
                   <div>
