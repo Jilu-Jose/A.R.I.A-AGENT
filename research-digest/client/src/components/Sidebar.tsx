@@ -4,7 +4,7 @@ import { useAuth } from '../AuthContext';
 import { AGENTS_LIST } from '../utils/agents';
 import {
   LayoutDashboard, Archive, BookOpen, Settings, LogOut,
-  MessageSquare, Shield, BarChart2, Rss, Compass
+  MessageSquare, Shield, BarChart2, Rss, Compass, Activity
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -84,6 +84,10 @@ export default function Sidebar({ collapsed }: SidebarProps) {
         </NavLink>
 
         {sectionLabel('Agents')}
+        <NavLink to="/dashboard/studio" className={navClass} title={collapsed ? 'Agent Studio' : undefined}>
+          <Activity size={18} className="shrink-0" />
+          {!collapsed && <span>Agent Studio</span>}
+        </NavLink>
         {AGENTS_LIST.map(agent => (
           <NavLink key={agent.id} to={`/dashboard/agents/${agent.id}`} className={navClass} title={collapsed ? agent.name : undefined}>
             <agent.icon size={18} className="shrink-0" />

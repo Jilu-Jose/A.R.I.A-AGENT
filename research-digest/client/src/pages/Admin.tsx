@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import { Shield, CheckCircle, XCircle, DollarSign, ChevronDown, ChevronUp, FileText, User, ExternalLink, Server, Cpu, ArrowLeft, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface AdminUser {
   id: number;
@@ -27,6 +29,7 @@ export default function Admin() {
   const [systemInfo, setSystemInfo] = useState<{agents: any[], mcp_servers: any[]} | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [confirmRejectId, setConfirmRejectId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const fetchUsers = async () => {
@@ -55,18 +58,26 @@ export default function Admin() {
     try {
       await api.post(`/admin/users/${id}/approve`);
       fetchUsers();
+      toast.success("User approved.");
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to approve user.");
+      toast.error(err.response?.data?.detail || "Failed to approve user.");
     }
   };
 
-  const rejectUser = async (id: number) => {
-    if (!confirm("Are you sure you want to reject and delete this user?")) return;
+  const rejectUser = (id: number) => {
+    setConfirmRejectId(id);
+  };
+
+  const handleConfirmReject = async () => {
+    if (confirmRejectId === null) return;
     try {
-      await api.post(`/admin/users/${id}/reject`);
+      await api.post(`/admin/users/${confirmRejectId}/reject`);
       fetchUsers();
+      toast.success("User rejected and deleted.");
     } catch (err) {
-      alert("Failed to reject user.");
+      toast.error("Failed to reject user.");
+    } finally {
+      setConfirmRejectId(null);
     }
   };
 
@@ -74,8 +85,9 @@ export default function Admin() {
     try {
       await api.post(`/admin/users/${id}/toggle_payment`);
       fetchUsers();
+      toast.success("Payment status toggled.");
     } catch (err) {
-      alert("Failed to toggle payment status.");
+      toast.error("Failed to toggle payment status.");
     }
   };
 
@@ -92,6 +104,14 @@ export default function Admin() {
 
   return (
     <div className="max-w-5xl mx-auto pb-24">
+      <ConfirmModal
+        isOpen={confirmRejectId !== null}
+        title="Reject User"
+        message="Are you sure you want to reject and delete this user? This action cannot be undone."
+        confirmText="Reject & Delete"
+        onConfirm={handleConfirmReject}
+        onCancel={() => setConfirmRejectId(null)}
+      />
       <div className="flex items-center gap-2 mb-4">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
           <ArrowLeft size={16} /> Go Back

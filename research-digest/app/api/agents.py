@@ -1,10 +1,14 @@
 import os
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from app.api.auth import get_approved_user
-from app.models import User
+from app.database import get_db, SessionLocal
+from app.models import User, AgentExecution
 import loguru
+import asyncio
+import datetime
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
@@ -18,6 +22,87 @@ class ClusterRequest(BaseModel):
     
 class GenericRequest(BaseModel):
     query: str
+
+@router.get("/active")
+def get_active_agents(db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
+    # Clean up old stuck agents for demo purposes
+    stuck = db.query(AgentExecution).filter(AgentExecution.status == "running").all()
+    now = datetime.datetime.now(datetime.timezone.utc)
+    for s in stuck:
+        updated = s.updated_at
+        if updated.tzinfo is None:
+            updated = updated.replace(tzinfo=datetime.timezone.utc)
+        if (now - updated).total_seconds() > 60:
+            s.status = "error"
+            s.logs += "\n[System] Agent timed out."
+            db.commit()
+
+    active = db.query(AgentExecution).order_by(AgentExecution.updated_at.desc()).limit(10).all()
+    return [
+        {
+            "id": a.id,
+            "agent_name": a.agent_name,
+            "status": a.status,
+            "current_step_name": a.current_step_name,
+            "current_step_index": a.current_step_index,
+            "total_steps": a.total_steps,
+            "logs": a.logs,
+            "updated_at": a.updated_at.isoformat()
+        } for a in active
+    ]
+
+async def _run_simulated_agent(execution_id: int):
+    db = SessionLocal()
+    try:
+        execution = db.query(AgentExecution).get(execution_id)
+        if not execution: return
+        
+        steps = [
+            ("Initializing Agent Environment", "Setting up MCP tools and LLM context..."),
+            ("Fetching Context", "Retrieving documents from vector store and web..."),
+            ("Analyzing Data", "Running semantic analysis on extracted text..."),
+            ("Synthesizing Results", "Compiling findings into final report format..."),
+            ("Complete", "Task finished successfully.")
+        ]
+        
+        for i, (step_name, log_msg) in enumerate(steps):
+            execution.current_step_index = i
+            execution.current_step_name = step_name
+            execution.logs += f"\n[{datetime.datetime.now(datetime.timezone.utc).strftime('%H:%M:%S')}] {log_msg}"
+            if i == len(steps) - 1:
+                execution.status = "completed"
+            
+            execution.updated_at = datetime.datetime.utcnow()
+            db.commit()
+            
+            if i < len(steps) - 1:
+                await asyncio.sleep(4)
+                
+    except Exception as e:
+        execution = db.query(AgentExecution).get(execution_id)
+        if execution:
+            execution.status = "error"
+            execution.logs += f"\nError: {e}"
+            db.commit()
+    finally:
+        db.close()
+
+@router.post("/simulate")
+def simulate_agent_run(background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
+    execution = AgentExecution(
+        agent_name="Autonomous Research Agent",
+        status="running",
+        current_step_name="Starting up",
+        current_step_index=0,
+        total_steps=5,
+        logs="[System] Agent task scheduled."
+    )
+    db.add(execution)
+    db.commit()
+    db.refresh(execution)
+    
+    background_tasks.add_task(_run_simulated_agent, execution.id)
+    return {"message": "Simulation started", "execution_id": execution.id}
 
 @router.post("/analyze-paper")
 async def analyze_paper(req: PaperRequest, current_user: User = Depends(get_approved_user)):

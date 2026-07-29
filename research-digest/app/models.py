@@ -81,8 +81,28 @@ class SavedPaper(Base):
     title = sa.Column(sa.String(500), nullable=False)
     url = sa.Column(sa.String(1000), nullable=False)
     created_at = sa.Column(sa.DateTime, default=lambda: datetime.now(timezone.utc))
+    cover_image_url = sa.Column(sa.String(1000), nullable=True)
+    file_size_bytes = sa.Column(sa.Integer, nullable=True)
+    original_filename = sa.Column(sa.String(500), nullable=True)
+    category = sa.Column(sa.String(100), nullable=True)
+    document_type = sa.Column(sa.String(50), nullable=True, default="Research Paper")
     
     owner = relationship("User", back_populates="saved_papers")
 
     def __repr__(self):
         return f"<SavedPaper {self.title}>"
+
+class AgentExecution(Base):
+    __tablename__ = "agent_executions"
+    id = sa.Column(sa.Integer, primary_key=True)
+    agent_name = sa.Column(sa.String(100), nullable=False)
+    status = sa.Column(sa.String(50), default="running")  # running, completed, error
+    current_step_name = sa.Column(sa.String(200))
+    current_step_index = sa.Column(sa.Integer, default=0)
+    total_steps = sa.Column(sa.Integer, default=1)
+    logs = sa.Column(sa.Text, default="")
+    created_at = sa.Column(sa.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = sa.Column(sa.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    
+    def __repr__(self):
+        return f"<AgentExecution {self.agent_name} - {self.status}>"

@@ -65,6 +65,10 @@ def on_startup():
     logger.add("logs/engine.log", rotation="10 MB")
     init_scheduler(app)
 
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
 if os.path.exists(CLIENT_DIST):
     app.mount("/", StaticFiles(directory=CLIENT_DIST, html=True), name="static")
 

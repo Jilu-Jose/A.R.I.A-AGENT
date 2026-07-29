@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import { Plus, Trash2, Power, ExternalLink, Rss, Tag, Search, CheckCircle2, XCircle, ArrowLeft, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface Feed {
   id: number;
@@ -31,6 +33,7 @@ export default function Resources() {
   const [addingTags, setAddingTags] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const fetchFeeds = async () => {
@@ -60,8 +63,9 @@ export default function Resources() {
       setAddingName('');
       setAddingTags('');
       fetchFeeds();
+      toast.success("Feed added.");
     } catch (err: any) {
-      alert(err.response?.data?.detail || 'Failed to add feed.');
+      toast.error(err.response?.data?.detail || 'Failed to add feed.');
     } finally {
       setSubmitting(false);
     }
@@ -69,7 +73,7 @@ export default function Resources() {
 
   const addSuggested = async (feed: typeof SUGGESTED_FEEDS[0]) => {
     const already = feeds.find(f => f.url === feed.url);
-    if (already) { alert('This feed is already in your list.'); return; }
+    if (already) { toast.error('This feed is already in your list.'); return; }
     try {
       const formData = new FormData();
       formData.append('url', feed.url);
@@ -77,24 +81,33 @@ export default function Resources() {
       formData.append('tags', feed.tags);
       await api.post('/settings/feeds', formData);
       fetchFeeds();
+      toast.success("Feed added.");
     } catch (err: any) {
-      alert(err.response?.data?.detail || 'Failed to add feed.');
+      toast.error(err.response?.data?.detail || 'Failed to add feed.');
     }
   };
 
-  const deleteFeed = async (id: number) => {
-    if (!confirm('Remove this feed?')) return;
+  const deleteFeed = (id: number) => {
+    setConfirmDeleteId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (confirmDeleteId === null) return;
     try {
-      await api.delete(`/settings/feeds/${id}`);
+      await api.delete(`/settings/feeds/${confirmDeleteId}`);
       fetchFeeds();
-    } catch { alert('Failed to remove feed.'); }
+      toast.success("Feed removed.");
+    } catch { toast.error('Failed to remove feed.'); } finally {
+      setConfirmDeleteId(null);
+    }
   };
 
   const toggleFeed = async (id: number) => {
     try {
       await api.put(`/settings/feeds/${id}/toggle`);
       fetchFeeds();
-    } catch { alert('Failed to toggle feed.'); }
+      toast.success("Feed toggled.");
+    } catch { toast.error('Failed to toggle feed.'); }
   };
 
   const filtered = feeds.filter(f =>
@@ -105,6 +118,14 @@ export default function Resources() {
 
   return (
     <div className="max-w-5xl mx-auto pb-24 space-y-8">
+      <ConfirmModal
+        isOpen={confirmDeleteId !== null}
+        title="Remove Feed"
+        message="Are you sure you want to remove this feed from your resources?"
+        confirmText="Remove Feed"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
       <div className="flex items-center gap-2 mb-4">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
           <ArrowLeft size={16} /> Go Back

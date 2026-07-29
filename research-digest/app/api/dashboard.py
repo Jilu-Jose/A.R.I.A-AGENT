@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Form
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Form, UploadFile, File
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, Digest, SavedPaper, DigestCluster
@@ -7,6 +7,9 @@ import json
 import logging
 from typing import List
 from pydantic import BaseModel
+import os
+import uuid
+import shutil
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -24,11 +27,21 @@ class DigestResponse(BaseModel):
     article_count: int
     clusters: List[ClusterResponse]
 
+class PaperUpdateRequest(BaseModel):
+    title: str | None = None
+    category: str | None = None
+    document_type: str | None = None
+
 class PaperResponse(BaseModel):
     id: int
     title: str
     url: str
     created_at: str
+    cover_image_url: str | None = None
+    file_size_bytes: int | None = None
+    original_filename: str | None = None
+    category: str | None = None
+    document_type: str | None = None
 
 @router.get("/latest", response_model=DigestResponse | dict)
 def get_latest_digest(db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
@@ -75,7 +88,17 @@ def run_now(background_tasks: BackgroundTasks, current_user: User = Depends(get_
 @router.get("/library", response_model=List[PaperResponse])
 def get_library(db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
     papers = db.query(SavedPaper).filter_by(user_id=current_user.id).order_by(SavedPaper.created_at.desc()).all()
-    return [{"id": p.id, "title": p.title, "url": p.url, "created_at": p.created_at.isoformat()} for p in papers]
+    return [{
+        "id": p.id, 
+        "title": p.title, 
+        "url": p.url, 
+        "created_at": p.created_at.isoformat(),
+        "cover_image_url": p.cover_image_url,
+        "file_size_bytes": p.file_size_bytes,
+        "original_filename": p.original_filename,
+        "category": p.category,
+        "document_type": p.document_type
+    } for p in papers]
 
 @router.post("/search")
 def search_and_pin(query: str = Form(...), background_tasks: BackgroundTasks = BackgroundTasks(), db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
@@ -149,6 +172,23 @@ def delete_paper(paper_id: int, db: Session = Depends(get_db), current_user: Use
     db.commit()
     return {"message": "Paper removed"}
 
+@router.put("/paper/{paper_id}")
+def update_paper(paper_id: int, update_data: PaperUpdateRequest, db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
+    paper = db.query(SavedPaper).get(paper_id)
+    if not paper or paper.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Paper not found")
+    
+    if update_data.title is not None:
+        paper.title = update_data.title
+    if update_data.category is not None:
+        paper.category = update_data.category
+    if update_data.document_type is not None:
+        paper.document_type = update_data.document_type
+        
+    db.commit()
+    db.refresh(paper)
+    return {"message": "Paper updated successfully"}
+
 @router.get("/citation-map")
 def get_citation_map(db: Session = Depends(get_db), current_user: User = Depends(get_approved_user)):
     papers = db.query(SavedPaper).filter_by(user_id=current_user.id).all()
@@ -162,3 +202,67 @@ def get_citation_map(db: Session = Depends(get_db), current_user: User = Depends
     except Exception as e:
         logger.error(f"Failed to build citation map: {e}")
         return {"nodes": [], "links": []}
+
+@router.post("/upload")
+async def upload_pdf(
+    file: UploadFile = File(...),
+    category: str = Form(None),
+    document_type: str = Form(None),
+    custom_title: str = Form(None),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_approved_user)
+):
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+
+    upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data", "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    unique_filename = f"{uuid.uuid4()}.pdf"
+    file_path = os.path.join(upload_dir, unique_filename)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    file_size = os.path.getsize(file_path)
+    original_filename = file.filename
+    
+    cover_image_url = None
+    try:
+        import fitz
+        doc = fitz.open(file_path)
+        if len(doc) > 0:
+            page = doc[0]
+            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+            cover_filename = unique_filename.replace('.pdf', '_cover.png')
+            cover_path = os.path.join(upload_dir, cover_filename)
+            pix.save(cover_path)
+            cover_image_url = f"/uploads/{cover_filename}"
+        doc.close()
+    except Exception as e:
+        logger.error(f"Failed to extract cover image: {e}")
+        
+    title = custom_title if custom_title and custom_title.strip() else (file.filename[:-4] if file.filename.lower().endswith(".pdf") else file.filename)
+    title = title or "Untitled Uploaded Paper"
+    
+    file_url = f"/uploads/{unique_filename}"
+    
+    new_paper = SavedPaper(
+        user_id=current_user.id, 
+        title=title, 
+        url=file_url,
+        cover_image_url=cover_image_url,
+        file_size_bytes=file_size,
+        original_filename=original_filename,
+        category=category,
+        document_type=document_type or "Research Paper"
+    )
+    db.add(new_paper)
+    db.commit()
+    db.refresh(new_paper)
+    
+    from agent.paper_analyst import run_paper_analyst
+    background_tasks.add_task(run_paper_analyst, new_paper.id, new_paper.title, new_paper.url)
+    
+    return {"message": f"Uploaded: {title[:30]}...", "id": new_paper.id, "url": file_url}

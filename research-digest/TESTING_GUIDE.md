@@ -57,16 +57,52 @@ Log back in as the standard user you just approved (or use an existing approved 
    * Navigate to your **Library** tab and verify the paper appears there.
    * Test interacting with the paper (e.g., pinning, reading the summary).
 4. **Agent Services (Interactive Testing)**
-   Navigate to the **Agent Services** page (or use the designated buttons in the Explore/Library sections) to manually test the autonomous AI agents:
-   * **Citation Network Agent:** Supply a paper ID to generate a graph of cited and referencing works, building a citation tree.
-   * **Clustering Agent:** Run this on a batch of fetched RSS papers to group them into related research digest topics.
-   * **Collaborator Finder:** Input a research domain or specific paper to find potential co-authors based on publication overlap.
-   * **Gap Finder:** Provide a set of related papers. The agent will analyze them and highlight underexplored areas or contradictory findings.
-   * **Literature Reviewer:** Enter a specific research question. The agent will synthesize multiple papers into a comprehensive mini-review.
-   * **Paper Analyst:** Run on a specific saved paper to extract detailed methodology, key findings, and limitations instead of a simple summary.
-   * **Recommender Agent:** Trigger this agent to look at your Library history and suggest new, unread papers from the database.
-   * **Summarisation Agent:** Feed a raw abstract or paper text into this agent to generate a concise, layperson-friendly summary.
-   * **Trend Detector:** Run this against the latest batch of ingested papers to detect rising keywords and breakout research topics.
+   Navigate to the **Agent Services** page (or use the designated buttons in the Explore/Library sections) to manually test the autonomous AI agents. Here is the step-by-step procedure for each:
+
+   * **Citation Network Agent:** 
+     1. Locate the Citation Network input field.
+     2. Supply a valid Paper ID (e.g., an arXiv ID or Semantic Scholar ID).
+     3. Click **Run Agent** and verify that a citation tree graph of cited and referencing works is returned.
+   
+   * **Clustering Agent:**
+     1. Go to the clustering section.
+     2. Select a batch of recent RSS papers or provide a list of paper summaries.
+     3. Click **Run Agent** to group them into related research digest topics. Verify the output groupings make semantic sense.
+   
+   * **Collaborator Finder:** 
+     1. Find the Collaborator Finder tool.
+     2. Input a specific research domain (e.g., "quantum computing") or a specific paper ID.
+     3. Click **Run Agent** and review the returned list of potential co-authors based on publication overlap and related activity.
+   
+   * **Gap Finder:** 
+     1. Select a set of related papers from your Library or provide a topic.
+     2. Click **Run Agent** to execute the Gap Finder.
+     3. Wait for the agent to analyze the papers and verify that it outputs a list of underexplored areas or contradictory findings.
+   
+   * **Literature Reviewer:** 
+     1. Enter a specific, detailed research question (e.g., "What are the latest applications of transformers in robotics?").
+     2. Click **Run Agent**.
+     3. The agent will search for papers, synthesize them, and produce a comprehensive mini-review. Verify the review contains proper structure.
+   
+   * **Paper Analyst:** 
+     1. Go to your Library and open a specific saved paper or provide a Paper ID.
+     2. Click **Run Agent** for the Paper Analyst.
+     3. Verify the agent extracts detailed methodology, key findings, and limitations instead of just a generic summary.
+   
+   * **Recommender Agent:** 
+     1. Ensure you have at least a few papers saved in your Library to build a profile.
+     2. Click **Run Agent** for the Recommender.
+     3. The agent will analyze your reading history and suggest new, unread papers. Verify the recommendations match your interests.
+   
+   * **Summarisation Agent:** 
+     1. Paste a raw, complex abstract or full paper text into the input field.
+     2. Click **Run Agent**.
+     3. Verify the output is a concise, layperson-friendly summary that captures the core message of the text.
+   
+   * **Trend Detector:** 
+     1. Navigate to the Trend Detector section.
+     2. Provide a domain or let it run against the latest batch of ingested papers.
+     3. Click **Run Agent**. Verify that the agent outputs a list of rising keywords, breakout research topics, and trending areas.
 
 ---
 

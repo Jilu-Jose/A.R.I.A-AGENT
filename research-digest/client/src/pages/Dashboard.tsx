@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
-import { Layers, FileText, Activity, Calendar, Archive, ChevronRight } from 'lucide-react';
+import { Layers, FileText, Activity, Calendar, Archive, ChevronRight, Upload } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 interface Article {
@@ -33,6 +34,35 @@ export default function Dashboard({ archives = false }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      toast.error("Only PDF files are allowed.");
+      return;
+    }
+    
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    try {
+      await api.post("/dashboard/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      toast.success("PDF uploaded and saved to Library.");
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to upload PDF.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -94,11 +124,30 @@ export default function Dashboard({ archives = false }: DashboardProps) {
     const digests = archiveList;
     return (
       <div className="max-w-5xl mx-auto">
-        <div className="mb-8 flex items-center gap-3">
-          <Archive size={28} className="text-gray-400 dark:text-gray-500" />
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Archive size={28} className="text-gray-400 dark:text-gray-500" />
+            <div>
+              <h1 className="text-3xl font-bold font-serif">Research Archives</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">All your past generated digests</p>
+            </div>
+          </div>
           <div>
-            <h1 className="text-3xl font-bold font-serif">Research Archives</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">All your past generated digests</p>
+            <input 
+              type="file" 
+              accept=".pdf,application/pdf" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black font-semibold rounded-xl hover:opacity-80 transition-all disabled:opacity-50"
+            >
+              <Upload size={18} />
+              {uploading ? "Uploading..." : "Upload PDF"}
+            </button>
           </div>
         </div>
 
@@ -184,43 +233,53 @@ export default function Dashboard({ archives = false }: DashboardProps) {
         )}
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {digest.clusters?.map((cluster, idx) => (
-          <div key={cluster.id} className="bg-white dark:bg-[#1a1d27] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3">
-              <span className="flex-shrink-0 w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold">
+          <div key={cluster.id} className="bg-white dark:bg-[#1a1d27] rounded-3xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4 bg-gradient-to-r from-gray-50/50 to-white dark:from-[#13151f]/50 dark:to-[#1a1d27]">
+              <span className="flex-shrink-0 w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 text-blue-700 dark:text-blue-300 flex items-center justify-center text-lg font-black shadow-inner border border-white/50 dark:border-white/5">
                 {idx + 1}
               </span>
-              <h2 className="text-xl font-bold font-serif text-gray-900 dark:text-white">{cluster.topic_name}</h2>
+              <h2 className="text-2xl font-bold font-serif text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{cluster.topic_name}</h2>
             </div>
 
-            <div className="px-6 py-5">
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap mb-6">
+            <div className="px-8 py-6">
+              <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed whitespace-pre-wrap mb-8">
                 {cluster.summary}
               </p>
 
-              <div className="bg-gray-50 dark:bg-[#13151f] rounded-xl p-4">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <FileText size={14} /> Source Papers ({cluster.articles.length})
+              <div>
+                <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+                  <FileText size={16} className="text-gray-400" /> Source Papers ({cluster.articles.length})
                 </h4>
-                <ul className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {cluster.articles.map((article, i) => (
-                    <li key={i}>
-                      <a
-                        href={article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-white dark:hover:bg-[#1a1d27] transition-colors"
-                      >
-                        <span className="flex-shrink-0 text-xs font-bold text-gray-400 w-5 text-right">{i + 1}.</span>
-                        <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm line-clamp-2 flex-1">
+                    <a
+                      key={i}
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/article flex items-start gap-4 p-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-[#13151f] border border-transparent hover:border-gray-200 dark:hover:border-gray-800 transition-all cursor-pointer"
+                    >
+                      <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700 relative">
+                        <img 
+                          src={`https://picsum.photos/seed/${cluster.id}-${i}/400/300`} 
+                          alt="Thumbnail" 
+                          className="w-full h-full object-cover group-hover/article:scale-105 transition-transform duration-500" 
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover/article:bg-black/10 transition-colors" />
+                      </div>
+                      <div className="flex-1 min-w-0 py-1">
+                        <h5 className="font-semibold text-gray-800 dark:text-gray-200 group-hover/article:text-blue-600 dark:group-hover/article:text-blue-400 transition-colors text-sm line-clamp-2 mb-1.5 leading-snug">
                           {article.title}
-                        </span>
-                        <ChevronRight size={14} className="text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </a>
-                    </li>
+                        </h5>
+                        <p className="text-xs text-gray-500 font-medium flex items-center gap-1">
+                          View Paper <ChevronRight size={12} className="opacity-0 -ml-1 group-hover/article:opacity-100 group-hover/article:translate-x-1 transition-all" />
+                        </p>
+                      </div>
+                    </a>
                   ))}
-                </ul>
+                </div>
               </div>
             </div>
           </div>
