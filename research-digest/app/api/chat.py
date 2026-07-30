@@ -1,5 +1,6 @@
 import os
 import json
+import threading
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from app.api.auth import get_approved_user
@@ -100,22 +101,43 @@ def stream_chat(chat_request: ChatRequest, current_user: User = Depends(get_appr
         
     async def review_generate(topic):
         from agent.literature_review import stream_literature_review
+        from agent.evals import background_eval_task
+        full_response = []
         try:
             async for token in stream_literature_review(topic):
+                full_response.append(token)
                 yield f"data: {json.dumps({'token': token})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"
+        # Fire eval in background thread (can't use background_tasks inside a generator)
+        output_text = "".join(full_response)
+        if output_text:
+            threading.Thread(
+                target=background_eval_task,
+                kwargs=dict(agent_name="literature_review", input_data=topic, output_data=output_text[:2000]),
+                daemon=True,
+            ).start()
         
         
     async def gap_generate(topic):
         from agent.gap_finder import stream_gap_finder
+        from agent.evals import background_eval_task
+        full_response = []
         try:
             async for token in stream_gap_finder(topic):
+                full_response.append(token)
                 yield f"data: {json.dumps({'token': token})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"
+        output_text = "".join(full_response)
+        if output_text:
+            threading.Thread(
+                target=background_eval_task,
+                kwargs=dict(agent_name="gap_finder", input_data=topic, output_data=output_text[:2000]),
+                daemon=True,
+            ).start()
         
     if user_message.strip().startswith("/review"):
         topic = user_message.replace("/review", "").strip()
@@ -131,12 +153,22 @@ def stream_chat(chat_request: ChatRequest, current_user: User = Depends(get_appr
         
     async def collab_generate(topic):
         from agent.collaborator_finder import stream_collaborator_finder
+        from agent.evals import background_eval_task
+        full_response = []
         try:
             async for token in stream_collaborator_finder(topic):
+                full_response.append(token)
                 yield f"data: {json.dumps({'token': token})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"
+        output_text = "".join(full_response)
+        if output_text:
+            threading.Thread(
+                target=background_eval_task,
+                kwargs=dict(agent_name="collaborator_finder", input_data=topic, output_data=output_text[:2000]),
+                daemon=True,
+            ).start()
         
     if user_message.strip().startswith("/collaborators"):
         topic = user_message.replace("/collaborators", "").strip()

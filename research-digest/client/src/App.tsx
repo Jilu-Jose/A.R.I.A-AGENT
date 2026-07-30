@@ -16,6 +16,7 @@ import Resources from "./pages/Resources";
 import Explore from "./pages/Explore";
 import AgentService from "./pages/AgentService";
 import AgentStudio from "./pages/AgentStudio";
+import EvalDashboard from "./pages/EvalDashboard";
 import Landing from "./pages/Landing";
 import Layout from "./components/Layout";
 
@@ -85,6 +86,7 @@ function App() {
             <Route path="settings" element={<Settings />} />
             <Route path="chat" element={<Chat />} />
             <Route path="studio" element={<AgentStudio />} />
+            <Route path="evals" element={<EvalDashboard />} />
             <Route path="agents/:agentId" element={<AgentService />} />
             <Route
               path="admin"

@@ -96,7 +96,7 @@ function AgentWorkflowGraph({ agent }: { agent: any }) {
                  <div className="text-xs text-gray-400 mt-1.5 font-medium">Last updated: {new Date(agent.updated_at).toLocaleTimeString()}</div>
               </div>
               <div className="flex items-center gap-2">
-                 {agent.status === 'running' && <span className="flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-widest shadow-inner"><Loader2 size={14} className="animate-spin" /> Running</span>}
+                 {agent.status === 'running' && <span className="flex items-center gap-2 px-4 py-1.5 bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-full text-xs font-bold uppercase tracking-widest shadow-inner"><Loader2 size={14} className="animate-spin" /> Running</span>}
                  {agent.status === 'completed' && <span className="flex items-center gap-2 px-4 py-1.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-widest shadow-inner"><CheckCircle2 size={14} /> Completed</span>}
                  {agent.status === 'error' && <span className="flex items-center gap-2 px-4 py-1.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-widest shadow-inner"><AlertCircle size={14} /> Error</span>}
               </div>
@@ -106,10 +106,10 @@ function AgentWorkflowGraph({ agent }: { agent: any }) {
               {/* Workflow Graph */}
               <div className="relative flex items-center justify-between max-w-4xl mx-auto mb-14 mt-6">
                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner">
-                    <div 
-                        className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000 ease-out"
-                        style={{ width: `${(agent.current_step_index / Math.max(1, agent.total_steps - 1)) * 100}%` }}
-                    />
+                   <div 
+                         className="h-full bg-black dark:bg-white transition-all duration-1000 ease-out"
+                         style={{ width: `${(agent.current_step_index / Math.max(1, agent.total_steps - 1)) * 100}%` }}
+                     />
                  </div>
                  
                  {steps.map((stepIndex) => {
@@ -119,15 +119,15 @@ function AgentWorkflowGraph({ agent }: { agent: any }) {
                     
                     return (
                         <div key={stepIndex} className="relative z-10 flex flex-col items-center group">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-[8px] border-white dark:border-[#1a1d27] transition-all duration-500 shadow-sm ${
-                                isCompleted ? 'bg-blue-500' : 
-                                isError ? 'bg-red-500' :
-                                isCurrent ? 'bg-blue-500 animate-pulse ring-4 ring-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'bg-gray-200 dark:bg-gray-700'
-                            }`}>
-                                {isCompleted ? <CheckCircle2 size={18} className="text-white" /> : 
-                                 isError ? <AlertCircle size={18} className="text-white" /> :
-                                 isCurrent ? <Loader2 size={18} className="text-white animate-spin" /> : 
-                                 <Circle size={12} className="text-gray-400 dark:text-gray-500" fill="currentColor" />}
+                             <div className={`w-12 h-12 rounded-full flex items-center justify-center border-[8px] border-white dark:border-[#1a1d27] transition-all duration-500 shadow-sm ${
+                                 isCompleted ? 'bg-black dark:bg-white' : 
+                                 isError ? 'bg-red-500' :
+                                 isCurrent ? 'bg-black dark:bg-white animate-pulse ring-4 ring-black/10 dark:ring-white/20 shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:shadow-[0_0_20px_rgba(255,255,255,0.15)]' : 'bg-gray-200 dark:bg-gray-700'
+                             }`}>
+                                 {isCompleted ? <CheckCircle2 size={18} className="text-white dark:text-black" /> : 
+                                  isError ? <AlertCircle size={18} className="text-white" /> :
+                                  isCurrent ? <Loader2 size={18} className="text-white dark:text-black animate-spin" /> : 
+                                  <Circle size={12} className="text-gray-400 dark:text-gray-500" fill="currentColor" />}
                             </div>
                             
                             <div className="absolute top-14 w-40 text-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 dark:bg-white/90 text-white dark:text-black text-[11px] font-bold py-1.5 px-3 rounded-lg backdrop-blur-sm pointer-events-none shadow-xl transform translate-y-2 group-hover:translate-y-0 duration-200">
@@ -140,7 +140,7 @@ function AgentWorkflowGraph({ agent }: { agent: any }) {
               
               <div className="text-center mb-10 bg-gray-50 dark:bg-gray-800/30 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm max-w-2xl mx-auto">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">Current Phase</span>
-                <h4 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight">
+                <h4 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
                     {agent.current_step_name || "Waiting..."}
                 </h4>
               </div>
@@ -150,7 +150,7 @@ function AgentWorkflowGraph({ agent }: { agent: any }) {
                 <div className="sticky top-0 right-0 float-right px-2 py-1 bg-white/10 rounded text-[10px] font-bold text-white/50 backdrop-blur-md mb-2">TERMINAL</div>
                 {agent.logs ? agent.logs.split('\n').filter(Boolean).map((line: string, i: number) => (
                     <div key={i} className="mb-2 leading-relaxed">
-                        <span className="text-blue-500 select-none mr-3 opacity-70">❯</span>
+                        <span className="text-gray-500 select-none mr-3 opacity-70">❯</span>
                         <span dangerouslySetInnerHTML={{
                           __html: line.replace(/\[\d{2}:\d{2}:\d{2}\]/g, '<span class="text-gray-500 mr-2">$&</span>')
                                       .replace(/Error:/g, '<span class="text-red-400 font-bold">Error:</span>')
@@ -159,7 +159,7 @@ function AgentWorkflowGraph({ agent }: { agent: any }) {
                     </div>
                 )) : (
                    <div className="text-gray-600 flex items-center gap-3 mt-4 ml-2">
-                     <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Waiting for agent logs...
+                     <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-600 animate-pulse"></span> Waiting for agent logs...
                    </div>
                 )}
               </div>

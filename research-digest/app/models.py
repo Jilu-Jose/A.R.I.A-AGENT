@@ -104,5 +104,29 @@ class AgentExecution(Base):
     created_at = sa.Column(sa.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = sa.Column(sa.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
+    eval_results = relationship("AgentEvalResult", back_populates="execution", lazy="select", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<AgentExecution {self.agent_name} - {self.status}>"
+
+
+class AgentEvalResult(Base):
+    """Stores LLM-as-a-Judge evaluation results for each agent output."""
+    __tablename__ = "agent_eval_results"
+    id = sa.Column(sa.Integer, primary_key=True)
+    # Link to the AgentExecution that triggered this eval (nullable for manual evals)
+    execution_id = sa.Column(sa.Integer, sa.ForeignKey("agent_executions.id"), nullable=True)
+    agent_name = sa.Column(sa.String(100), nullable=False, index=True)
+    # e.g. "faithfulness", "relevance", "completeness", "coherence", "insightfulness"
+    eval_type = sa.Column(sa.String(80), nullable=False)
+    score = sa.Column(sa.Integer, nullable=False)  # 1–5
+    reasoning = sa.Column(sa.Text, nullable=False, default="")
+    # Truncated snapshots of input and output for display
+    input_snapshot = sa.Column(sa.Text, nullable=True)
+    output_snapshot = sa.Column(sa.Text, nullable=True)
+    created_at = sa.Column(sa.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    execution = relationship("AgentExecution", back_populates="eval_results")
+
+    def __repr__(self):
+        return f"<AgentEvalResult {self.agent_name}/{self.eval_type} score={self.score}>"
