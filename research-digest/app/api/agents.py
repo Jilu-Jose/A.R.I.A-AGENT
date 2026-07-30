@@ -24,6 +24,9 @@ def _fire_eval(agent_name: str, input_data: str, output_data: str, context: str 
 import asyncio
 import datetime
 
+# ── Task registry for cooperative cancellation ──────────────────────────────
+_running_tasks: dict[str, asyncio.Task] = {}
+
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
 class PaperRequest(BaseModel):
@@ -118,6 +121,19 @@ def simulate_agent_run(background_tasks: BackgroundTasks, db: Session = Depends(
     background_tasks.add_task(_run_simulated_agent, execution.id)
     return {"message": "Simulation started", "execution_id": execution.id}
 
+@router.post("/terminate/{agent_name}")
+async def terminate_agent(
+    agent_name: str,
+    current_user: User = Depends(get_approved_user),
+):
+    """Cancel a running agent task by name."""
+    task = _running_tasks.get(agent_name)
+    if task and not task.done():
+        task.cancel()
+        _running_tasks.pop(agent_name, None)
+        return {"message": f"Agent '{agent_name}' terminated.", "cancelled": True}
+    return {"message": f"No active task found for '{agent_name}'.", "cancelled": False}
+
 @router.post("/analyze-paper")
 async def analyze_paper(
     req: PaperRequest,
@@ -128,11 +144,18 @@ async def analyze_paper(
         raise HTTPException(status_code=400, detail="Paper title/query is required")
         
     from agent.paper_analyst import async_run_paper_analyst
-    
     import hashlib
     pid = int(hashlib.md5(req.query.encode()).hexdigest()[:8], 16)
-    
-    result = await async_run_paper_analyst(pid, req.query, req.url)
+
+    try:
+        task = asyncio.ensure_future(async_run_paper_analyst(pid, req.query, req.url))
+        _running_tasks["paper_analyst"] = task
+        result = await task
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=499, detail="Execution cancelled.")
+    finally:
+        _running_tasks.pop("paper_analyst", None)
+
     if not result:
         raise HTTPException(status_code=500, detail="Failed to parse paper analysis.")
 
@@ -152,7 +175,15 @@ async def trend_detect(
     current_user: User = Depends(get_approved_user),
 ):
     from agent.trend_detector import async_run_trend_detector
-    result = await async_run_trend_detector()
+    try:
+        task = asyncio.ensure_future(async_run_trend_detector())
+        _running_tasks["trend_detector"] = task
+        result = await task
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=499, detail="Execution cancelled.")
+    finally:
+        _running_tasks.pop("trend_detector", None)
+
     if not result:
         raise HTTPException(status_code=500, detail="Failed to detect trends.")
 
@@ -195,7 +226,15 @@ async def cluster(
     import numpy as np
     embeddings = embedder.embed_documents([d.page_content for d in docs])
     
-    cluster_result = cluster_documents(docs, np.array(embeddings))
+    loop = asyncio.get_event_loop()
+    try:
+        task = loop.run_in_executor(None, cluster_documents, docs, np.array(embeddings))
+        _running_tasks["cluster"] = asyncio.ensure_future(task)
+        cluster_result = await _running_tasks["cluster"]
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=499, detail="Execution cancelled.")
+    finally:
+        _running_tasks.pop("cluster", None)
 
     import json as _json
     topics = ", ".join(c.get("topic_name", "") for c in cluster_result) if cluster_result else ""
@@ -238,7 +277,15 @@ async def summarize(
     embeddings = embedder.embed_documents([d.page_content for d in docs])
     clusters = cluster_documents(docs, np.array(embeddings))
     
-    summaries = summarise_clusters(clusters)
+    loop = asyncio.get_event_loop()
+    try:
+        task = loop.run_in_executor(None, summarise_clusters, clusters)
+        _running_tasks["summarise"] = asyncio.ensure_future(task)
+        summaries = await _running_tasks["summarise"]
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=499, detail="Execution cancelled.")
+    finally:
+        _running_tasks.pop("summarise", None)
 
     import json as _json
     output_text = _json.dumps(summaries)[:2000]
@@ -261,7 +308,15 @@ async def citation_network(
     from app.models import SavedPaper
     import hashlib
     paper = SavedPaper(id=int(hashlib.md5(req.query.encode()).hexdigest()[:8], 16), title=req.query, url="")
-    result = await async_build_citation_map([paper])
+    try:
+        task = asyncio.ensure_future(async_build_citation_map([paper]))
+        _running_tasks["citation_network"] = task
+        result = await task
+    except asyncio.CancelledError:
+        raise HTTPException(status_code=499, detail="Execution cancelled.")
+    finally:
+        _running_tasks.pop("citation_network", None)
+
     if not result:
         raise HTTPException(status_code=500, detail="Failed to generate citation network.")
 
